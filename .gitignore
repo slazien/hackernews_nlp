@@ -1,3 +1,4 @@
 /.vscode/
 /src/db/constants.py
 .env
+/.vscode/
