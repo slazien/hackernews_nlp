@@ -1,0 +1,34 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+scikit-learn = "*"
+ipykernel = "*"
+jupyter = "*"
+pandas = "*"
+jupyterlab = "*"
+seaborn = "*"
+tensorflow = "*"
+plotly = "*"
+cufflinks = "*"
+nodeenv = "*"
+chart-studio = "*"
+statsmodels = "*"
+black = "*"
+treelib = "*"
+ratelimit = "*"
+luigi = "*"
+
+[dev-packages]
+black = "*"
+
+[requires]
+python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
