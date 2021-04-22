@@ -2,3 +2,4 @@
 /src/db/constants.py
 .env
 /.vscode/
+.idea
