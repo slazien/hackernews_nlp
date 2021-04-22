@@ -12,7 +12,8 @@ class CreateTableItems:
         self.cursor = self.conn.cursor()
 
     def create_table(self):
-        query = sql.SQL("""
+        query = sql.SQL(
+            """
         CREATE TABLE items (
             id integer PRIMARY KEY,
             deleted bool,
@@ -30,9 +31,10 @@ class CreateTableItems:
             parts integer[],
             descendants integer
             );
-        """)
+        """
+        )
 
-        if not is_table_exists(self.conn, "items"):
+        if not is_table_exists(self.conn, self.table_name):
             self.cursor.execute(query)
             self.cursor.close()
             self.conn.close()

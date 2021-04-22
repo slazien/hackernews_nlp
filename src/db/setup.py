@@ -13,7 +13,7 @@ class Setup:
 
     def run(self):
         self.dbcreate.create_db()
-        self.conn_initial.close()
+        # self.conn_initial.close()
 
         conn_hackernews = DBConnection(
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS

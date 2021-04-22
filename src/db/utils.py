@@ -1,11 +1,12 @@
 from typing import Any
+from src.db.connection import DBConnection
 
 from psycopg2 import sql
 
 
-def is_table_exists(conn, table_name: str) -> bool:
+def is_table_exists(conn: DBConnection, table_name: str) -> bool:
     try:
-        cursor = conn.cursor()
+        cursor = conn.get().cursor()
         query = sql.SQL(
             """
             SELECT EXISTS (
@@ -13,8 +14,8 @@ def is_table_exists(conn, table_name: str) -> bool:
             WHERE  schemaname = 'public'
             AND    tablename  = '{}'
            );
-        """
-        ).format(sql.Identifier(table_name))
+        """.format(table_name)
+        )
 
         cursor.execute(query)
         res = cursor.fetchall()
@@ -25,5 +26,7 @@ def is_table_exists(conn, table_name: str) -> bool:
         raise Exception("Exception: {}".format(e))
 
 
-def is_value_exists(value: Any, column_name: str):
-    pass
+def is_value_exists(conn: DBConnection, table_name: str, column_name: str, value: Any):
+    query_all = """
+    SELECT {} FROM {}
+    """.format(column_name, table_name)
