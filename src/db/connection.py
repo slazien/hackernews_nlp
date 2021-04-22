@@ -3,6 +3,7 @@ import psycopg2
 
 class DBConnection:
     def __init__(self, user: str, password: str, db_name: str):
+        pass
         self.conn = psycopg2.connect(
             database=db_name,
             user=user,
