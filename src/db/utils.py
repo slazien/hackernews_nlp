@@ -7,7 +7,7 @@ from src.db.connection import DBConnection
 
 def is_table_exists(conn: DBConnection, table_name: str) -> bool:
     try:
-        cursor = conn.get_conn().cursor()
+        cursor = conn.get_cursor()
         query = sql.SQL(
             """
             SELECT EXISTS (
