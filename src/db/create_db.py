@@ -14,7 +14,8 @@ class DBCreate:
         self.conn.autocommit = True
 
         # Check if DB exists
-        cur.execute("SELECT datname FROM pg_database;")
+        query = sql.SQL("SELECT datname FROM pg_database")
+        cur.execute(query)
         dbs = cur.fetchall()
 
         if (self.db_name,) not in dbs:

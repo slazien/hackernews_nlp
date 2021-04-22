@@ -1,17 +1,18 @@
+from psycopg2 import sql
+
 from src.db.connection import DBConnection
 from src.db.utils import is_table_exists
 
 
 class CreateTableItems:
-    def __init__(self, conn: DBConnection, db_name: str, table_name: str = "items"):
-        self.db_name = db_name
+    def __init__(self, conn: DBConnection, table_name: str = "items"):
         self.table_name = table_name
         self.conn = conn.get()
         self.conn.autocommit = True
         self.cursor = self.conn.cursor()
 
     def create_table(self):
-        sql = """
+        query = sql.SQL("""
         CREATE TABLE items (
             id integer PRIMARY KEY,
             deleted bool,
@@ -29,9 +30,9 @@ class CreateTableItems:
             parts integer[],
             descendants integer
             );
-        """
+        """)
 
         if not is_table_exists(self.conn, "items"):
-            self.cursor.execute(sql)
+            self.cursor.execute(query)
             self.cursor.close()
             self.conn.close()
