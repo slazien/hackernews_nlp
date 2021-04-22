@@ -1,3 +1,5 @@
+import logging
+
 from src.db.connection import DBConnection
 from src.db.constants import DB_NAME_HACKERNEWS, DB_NAME_INITIAL, DB_PASSWORD
 from src.db.create_db import DBCreate
@@ -23,6 +25,7 @@ class Setup:
 
         tables = [table_items]
 
+        logging.info("creating all tables")
         for table in tables:
             table.create_table()
 

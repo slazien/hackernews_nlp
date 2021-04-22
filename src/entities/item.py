@@ -88,7 +88,7 @@ class Item:
 
     def __repr__(self):
         return (
-            "Comment("
+            "Item("
             "id={},"
             "deleted={},"
             "type={},"
@@ -124,7 +124,7 @@ class Item:
 
     def __str__(self):
         return (
-            "Comment("
+            "Item("
             "id={},"
             "deleted={},"
             "type={},"

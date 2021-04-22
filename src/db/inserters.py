@@ -1,3 +1,5 @@
+import logging
+
 from src.db.connection import DBConnection
 from src.db.constants import TABLE_NAME_ITEMS
 from src.db.utils import is_value_exists
@@ -14,6 +16,7 @@ class ItemInserter:
         self.primary_key_name = "id"
 
     def insert_item(self, item: Item):
+        logging.info("inserting item: {}".format(item))
         id = item.get_property("id")
         deleted = item.get_property("deleted")
         type = item.get_property("type")
@@ -37,7 +40,7 @@ class ItemInserter:
             self.table_name
         )
 
-        # Insert only if if id doesn't already exist
+        # Insert only if id doesn't already exist
         if not is_value_exists(
             self.conn_obj, self.table_name, self.primary_key_name, id
         ):
@@ -62,3 +65,6 @@ class ItemInserter:
                 ),
             )
             self.conn.commit()
+            logging.info("item inserted: {}".format(item))
+        else:
+            logging.info("item already exists: {}".format(item))

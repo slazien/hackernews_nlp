@@ -1,3 +1,4 @@
+import logging
 from collections import deque
 from typing import List, Optional
 
@@ -9,7 +10,7 @@ from src.entities.item import Item
 from src.utils.time import MINUTE
 
 # Rate limit / minute
-RATE_LIMIT_DEFAULT = 60
+RATE_LIMIT_DEFAULT = 1000
 
 
 class ItemAPI:
@@ -23,13 +24,18 @@ class ItemAPI:
     @sleep_and_retry
     @limits(calls=RATE_LIMIT_DEFAULT, period=MINUTE)
     def get_item(self, item_id: int) -> Item:
-        res = get(url=self.create_url(item_id=item_id))
-
+        url = self.create_url(item_id=item_id)
+        logging.info("making GET request: {}".format(url))
+        res = get(url=url)
         if res.status_code != 200:
-            raise Exception(
-                "API response: {}. Item id: {}".format(res.status_code, item_id)
+            logging.error(
+                "GET request failed: {}, item_id: {}".format(res.status_code, item_id)
             )
+            # raise Exception(
+            #     "API response: {}. Item id: {}".format(res.status_code, item_id)
+            # )
 
+        logging.info("GET request succeeded for item_id: {}".format(item_id))
         comment = Item().from_res(res.json())
 
         return comment
@@ -53,6 +59,7 @@ class ItemAPI:
             return None
 
     def create_tree_for_item_id(self, item_id: int) -> Tree:
+        logging.info("creating tree for item_id: ".format(item_id))
         tree_out = Tree()
         item = self.get_item(item_id)
         item_kids = self.get_all_kids_for_item_id(item_id)
@@ -61,6 +68,7 @@ class ItemAPI:
         tree_out.create_node(
             tag=str(item.get_id()), identifier=item_id, data=item, parent=None
         )
+
         if item_kids is not None:
             for item_kid in item_kids:
                 tree_out.create_node(
@@ -70,21 +78,28 @@ class ItemAPI:
                     data=item_kid,
                 )
 
+        logging.info("created tree for item_id: {}".format(item_id))
+
         return tree_out
 
     @sleep_and_retry
     @limits(calls=RATE_LIMIT_DEFAULT, period=MINUTE)
     def get_maxitem_id(self) -> int:
-        res = get(url="https://hacker-news.firebaseio.com/v0/maxitem.json")
+        url = "https://hacker-news.firebaseio.com/v0/maxitem.json"
+        logging.info("making GET request: {}".format(url))
+        res = get(url=url)
 
         if res.status_code != 200:
-            raise Exception("API response: {}".format(res.status_code))
+            logging.error("GET request failed: {}".format(res.status_code))
+            # raise Exception("API response: {}".format(res.status_code))
 
         max_item_id = res.json()
+        logging.info("GET request succeeded, max_id: {}".format(max_item_id))
 
         return max_item_id
 
     def get_root_item(self, item_id: int) -> Optional[Item]:
+        logging.info("getting root item for item_id: {}".format(item_id))
         item_cache = []
 
         # Get initial item
@@ -96,16 +111,21 @@ class ItemAPI:
             item_cache.append(item)
 
         if len(item_cache) > 0:
+            logging.info(
+                "got root item for item_id: {}, id: {}".format(item_id, item_cache[-1])
+            )
             return item_cache[-1]
         else:
+            logging.warning("found no root item for item_id: {}".format(item_id))
             return None
 
     def build_tree_for_root_item(self, item: Item) -> Tree:
+        item_id = item.get_id()
+        logging.info("creating tree for root item_id: {}".format(item_id))
         tree = Tree()
         stack = deque([])
 
         # Preorder contains ids of all visited nodes
-        item_id = item.get_id()
         preorder = [item_id]
 
         # Add the root node to the tree
@@ -149,4 +169,5 @@ class ItemAPI:
             if flag == 0:
                 stack.pop()
 
+        logging.info("finished creating tree for item_id: {}".format(item_id))
         return tree
