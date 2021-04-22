@@ -17,7 +17,7 @@ class DBConnection:
         return self.conn
 
     def close_conn(self):
-        return self.conn.close_conn()
+        return self.conn.close()
 
     def get_cursor(self):
         return self.cursor
