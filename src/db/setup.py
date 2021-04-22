@@ -26,4 +26,4 @@ class Setup:
         for table in tables:
             table.create_table()
 
-        conn_hackernews.close()
+        conn_hackernews.close_conn()

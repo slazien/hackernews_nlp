@@ -13,8 +13,14 @@ class DBConnection:
         )
         self.cursor = self.conn.cursor()
 
-    def get(self):
+    def get_conn(self):
         return self.conn
 
-    def close(self):
-        return self.conn.close()
+    def close_conn(self):
+        return self.conn.close_conn()
+
+    def get_cursor(self):
+        return self.cursor
+
+    def close_cursor(self):
+        self.cursor.close()

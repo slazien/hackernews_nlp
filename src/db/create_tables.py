@@ -7,7 +7,7 @@ from src.db.utils import is_table_exists
 class CreateTableItems:
     def __init__(self, conn: DBConnection, table_name: str = "items"):
         self.table_name = table_name
-        self.conn = conn.get()
+        self.conn = conn.get_conn()
         self.conn.autocommit = True
         self.cursor = self.conn.cursor()
 
@@ -36,5 +36,5 @@ class CreateTableItems:
 
         if not is_table_exists(self.conn, self.table_name):
             self.cursor.execute(query)
-            self.cursor.close()
-            self.conn.close()
+            self.cursor.close_conn()
+            self.conn.close_conn()

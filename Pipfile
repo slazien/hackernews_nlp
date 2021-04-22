@@ -23,6 +23,8 @@ black = "*"
 treelib = "*"
 ratelimit = "*"
 luigi = "*"
+tqdm = "*"
+pre-commit = "*"
 
 [dev-packages]
 black = "*"

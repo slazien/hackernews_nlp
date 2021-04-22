@@ -1,13 +1,17 @@
-from src.entities.item import Item
 from src.db.connection import DBConnection
+from src.db.constants import TABLE_NAME_ITEMS
+from src.db.utils import is_value_exists
+from src.entities.item import Item
 
 
 class ItemInserter:
-    def __init__(self, conn: DBConnection, table_name: str = "items"):
-        self.conn = conn.get()
-        self.cursor = self.conn.cursor()
-        self.conn.autocommit = True
+    def __init__(self, conn: DBConnection, table_name: str = TABLE_NAME_ITEMS):
+        self.conn_obj = conn
+        self.conn = conn.get_conn()
+        self.cursor = conn.get_cursor()
+        # self.conn.autocommit = True
         self.table_name = table_name
+        self.primary_key_name = "id"
 
     def insert_item(self, item: Item):
         id = item.get_property("id")
@@ -29,25 +33,32 @@ class ItemInserter:
         sql = """
         INSERT INTO {} (id, deleted, type, by, time, text, dead, parent, poll, kids, url, score, title, parts, descendants)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """.format(self.table_name)
-
-        self.cursor.execute(
-            sql,
-            (
-                id,
-                deleted,
-                type,
-                by,
-                time,
-                text,
-                dead,
-                parent,
-                poll,
-                kids,
-                url,
-                score,
-                title,
-                parts,
-                descendants,
-            ),
+        """.format(
+            self.table_name
         )
+
+        # Insert only if if id doesn't already exist
+        if not is_value_exists(
+            self.conn_obj, self.table_name, self.primary_key_name, id
+        ):
+            self.cursor.execute(
+                sql,
+                (
+                    id,
+                    deleted,
+                    type,
+                    by,
+                    time,
+                    text,
+                    dead,
+                    parent,
+                    poll,
+                    kids,
+                    url,
+                    score,
+                    title,
+                    parts,
+                    descendants,
+                ),
+            )
+            self.conn.commit()

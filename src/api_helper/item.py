@@ -72,6 +72,18 @@ class ItemAPI:
 
         return tree_out
 
+    @sleep_and_retry
+    @limits(calls=RATE_LIMIT_DEFAULT, period=MINUTE)
+    def get_maxitem_id(self) -> int:
+        res = get(url="https://hacker-news.firebaseio.com/v0/maxitem.json")
+
+        if res.status_code != 200:
+            raise Exception("API response: {}".format(res.status_code))
+
+        max_item_id = res.json()
+
+        return max_item_id
+
     def get_root_item(self, item_id: int) -> Optional[Item]:
         item_cache = []
 
