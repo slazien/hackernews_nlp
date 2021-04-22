@@ -1,3 +1,5 @@
+import logging
+
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -11,6 +13,7 @@ class DBCreate:
         self.conn = conn.get_conn()
 
     def create_db(self):
+        logging.info("creating db with db_name: {}".format(self.db_name))
         self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.conn.autocommit = True
 
@@ -20,9 +23,12 @@ class DBCreate:
         dbs = self.cursor.fetchall()
 
         if (self.db_name,) not in dbs:
+            logging.info("db does not exist: {}".format(self.db_name))
             self.cursor.execute(
                 sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_name))
             )
+        else:
+            logging.info("db exists: {}".format(self.db_name))
 
         self.cursor.close()
         self.conn.close()
