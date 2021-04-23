@@ -27,9 +27,9 @@ def is_table_exists(conn: DBConnection, table_name: str) -> bool:
 
         # table exists
         if res[0][0]:
-            logging.info("table {} exists".format(table_name))
+            logging.info("table {} exists, skipping".format(table_name))
         else:
-            logging.info("table {} does not exist".format(table_name))
+            logging.info("table {} does not exist, creating".format(table_name))
 
         return res[0][0]
 
@@ -44,24 +44,21 @@ def is_value_exists(conn: DBConnection, table_name: str, column_name: str, value
             value, column_name, table_name
         )
     )
-    query_all = """
-    SELECT {} FROM {}
+
+    query_exists = """
+    SELECT EXISTS(
+    SELECT 1 FROM {} WHERE {}={}
+    );
     """.format(
-        column_name, table_name
+        table_name, column_name, value
     )
-
     cursor = conn.get_cursor()
+    cursor.execute(sql.SQL(query_exists))
+    res = cursor.fetchall()[0][0]
 
-    cursor.execute(sql.SQL(query_all))
-
-    query_all_res = cursor.fetchall()
-
-    ids = [item[0] for item in query_all_res]
-
-    # value exists
-    if value in ids:
-        logging.info("value {} exists".format(value))
+    if res:
+        logging.info("value {} exists, skipping".format(value))
     else:
-        logging.info("value {} does not exist".format(value))
+        logging.info("value {} does not exist, inserting".format(value))
 
-    return value in ids
+    return res

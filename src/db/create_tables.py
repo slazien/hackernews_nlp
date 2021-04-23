@@ -3,7 +3,7 @@ import logging
 from psycopg2 import sql
 
 from src.db.connection import DBConnection
-from src.db.constants import TABLE_NAME_ITEMS
+from src.db.constants import PRIMARY_KEY_NAME_ITEMS, TABLE_NAME_ITEMS
 from src.db.utils import is_table_exists
 
 
@@ -17,7 +17,7 @@ class CreateTableItems:
 
     def create_table(self):
         logging.info("creating table: {}".format(self.table_name))
-        query = sql.SQL(
+        query_table = sql.SQL(
             """
         CREATE TABLE items (
             id integer PRIMARY KEY,
@@ -39,8 +39,17 @@ class CreateTableItems:
         """
         )
 
+        query_index = """
+        CREATE INDEX index_{} ON {}({});
+        """.format(
+            PRIMARY_KEY_NAME_ITEMS, TABLE_NAME_ITEMS, PRIMARY_KEY_NAME_ITEMS
+        )
+
         if not is_table_exists(self.conn_object, self.table_name):
-            self.cursor.execute(query)
+            # Create table
+            self.cursor.execute(query_table)
+            # Create index
+            self.cursor.execute(query_index)
             self.cursor.close()
             self.conn.close()
         else:
