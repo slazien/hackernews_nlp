@@ -13,7 +13,6 @@ LOG_FILENAME = "logs/{}.log".format(str(int(time())))
 parser = argparse.ArgumentParser()
 parser.add_argument("--startid", help="id of the first item to download", type=int)
 parser.add_argument("--endid", help="id of the last item to download", type=int)
-parser.add_argument("--numchunks", help="number of ranges to process", type=int)
 parser.add_argument("--workers", help="number of workers to run the job", type=int)
 args = parser.parse_args()
 
@@ -32,9 +31,9 @@ def main():
     logging.info("finished setting up database")
 
     ranges = []
-    chunk_size = int(ceil((args.endid - args.startid) / args.numchunks))
+    chunk_size = int(ceil((args.endid - args.startid) / args.workers))
 
-    for n in range(1, args.numchunks + 1):
+    for n in range(1, args.workers + 1):
         start = args.startid + (n - 1) * chunk_size
         end = args.startid + n * chunk_size
         ranges.append((start, end))
