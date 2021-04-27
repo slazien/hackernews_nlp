@@ -14,7 +14,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--startid", help="id of the first item to download", type=int)
 parser.add_argument("--endid", help="id of the last item to download", type=int)
 parser.add_argument("--workers", help="number of workers to run the job", type=int)
+parser.add_argument(
+    "--loggingenabled", help="should logging be enabled (1 = yes, 0 = no)", type=int
+)
 args = parser.parse_args()
+
+# DISABLE LOGGING?
+if args.loggingenabled == 0:
+    logging.disable(level=logging.CRITICAL)
 
 
 def main():

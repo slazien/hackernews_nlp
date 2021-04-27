@@ -10,7 +10,7 @@ from src.entities.item import Item
 from src.utils.time import MINUTE
 
 # Rate limit / minute
-RATE_LIMIT_DEFAULT = 1000
+RATE_LIMIT_DEFAULT = 100000
 
 
 class ItemAPI:
