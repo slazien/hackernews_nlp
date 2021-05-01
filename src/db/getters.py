@@ -23,7 +23,9 @@ class ItemGetter:
         self.col_name_id = column_name
 
     def _is_item_exists(self, item_id: int) -> bool:
-        return is_value_exists(self.conn, self.table_name, self.col_name_id, item_id)
+        return is_value_exists(
+            self.conn_obj, self.table_name, self.col_name_id, item_id
+        )
 
     def _are_items_exist(self, item_ids: tuple) -> bool:
         return all_values_exist(
@@ -32,14 +34,15 @@ class ItemGetter:
 
     def get_item(self, item_id: int) -> Optional[Item]:
         logging.info("getting item with id: {}".format(item_id))
-        if self._is_item_exists():
+        if self._is_item_exists(item_id):
             query = """
             SELECT * FROM {} WHERE {} = {};
             """.format(
                 self.table_name, self.col_name_id, item_id
             )
+            print(query)
             self.cursor.execute(query)
-            item = Item().from_api_call(self.cursor.fetchall())
+            item = Item().from_db_call(self.cursor.fetchall())
             return item
         else:
             logging.info("item with id: {} does not exist".format(item_id))
