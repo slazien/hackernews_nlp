@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, List, Set, Tuple, Union
 
 from psycopg2 import sql
 
@@ -62,3 +62,26 @@ def is_value_exists(conn: DBConnection, table_name: str, column_name: str, value
         logging.info("value {} does not exist, inserting".format(value))
 
     return res
+
+
+def all_values_exist(
+    conn: DBConnection, table_name: str, column_name: str, values: tuple
+) -> bool:
+    logging.info(
+        "checking if range of values [{}, {}] exists in column {} in table {}".format(
+            min(values), max(values), column_name, table_name
+        )
+    )
+
+    query_exist = """
+    SELECT COUNT({}) FROM {} WHERE {} IN {}
+    """.format(
+        column_name, table_name, column_name, values
+    )
+
+    cursor = conn.get_cursor()
+    cursor.execute(sql.SQL(query_exist))
+    res = cursor.fetchall()[0][0]
+
+    # Check if the count of returned values is the same as the count of the input values
+    return res == len(values)

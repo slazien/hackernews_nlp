@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from ratelimit import limits, sleep_and_retry
 from requests import get
+from tqdm import tqdm
 from treelib import Tree
 
 from src.entities.item import Item
@@ -23,22 +24,22 @@ class ItemAPI:
     # Hard rate limit, no exponential backoff
     @sleep_and_retry
     @limits(calls=RATE_LIMIT_DEFAULT, period=MINUTE)
-    def get_item(self, item_id: int) -> Item:
+    def get_item(self, item_id: int) -> Optional[Item]:
         url = self.create_url(item_id=item_id)
         logging.info("making GET request: {}".format(url))
         res = get(url=url)
         if res.status_code != 200:
-            logging.error(
+            logging.warning(
                 "GET request failed: {}, item_id: {}".format(res.status_code, item_id)
             )
             # raise Exception(
             #     "API response: {}. Item id: {}".format(res.status_code, item_id)
             # )
-
-        logging.info("GET request succeeded for item_id: {}".format(item_id))
-        comment = Item().from_res(res.json())
-
-        return comment
+            return None
+        else:
+            logging.info("GET request succeeded for item_id: {}".format(item_id))
+            comment = Item().from_api_call(res.json())
+            return comment
 
     def get_item_batch(self, item_ids: List[int]) -> List[Item]:
         data_out_list = []
@@ -150,7 +151,7 @@ class ItemAPI:
             else:
                 parent = stack[-1]
 
-            for kid_id in parent.get_kids_ids():
+            for kid_id in tqdm(parent.get_kids_ids()):
                 # Get the kid item
                 kid = self.get_item(kid_id)
 

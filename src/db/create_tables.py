@@ -15,7 +15,7 @@ class CreateTableItems:
         self.conn.autocommit = True
         self.cursor = self.conn.cursor()
 
-    def create_table(self):
+    def create_table(self) -> bool:
         logging.info("creating table: {}".format(self.table_name))
         query_table = sql.SQL(
             """
@@ -52,5 +52,7 @@ class CreateTableItems:
             self.cursor.execute(query_index)
             self.cursor.close()
             self.conn.close()
+            return True
         else:
             logging.info("table {} already exists, skipping".format(self.table_name))
+            return False

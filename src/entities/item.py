@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import Any, List, Optional
 
@@ -62,7 +64,7 @@ class Item:
             return None
 
     @staticmethod
-    def from_res(data: dict):
+    def from_api_call(data: dict) -> Item:
         return Item(
             id=data["id"] if "id" in data else None,
             deleted=data["deleted"] if "deleted" in data else None,
@@ -80,6 +82,38 @@ class Item:
             parts=data["parts"] if "parts" in data else None,
             descendants=data["descendants"] if "descendants" in data else None,
         )
+
+    @staticmethod
+    def from_tuple(tup: tuple) -> Optional[Item]:
+        # If there aren't 15 columns
+        if len(tup) != 15:
+            logging.warning(
+                "tried creating item from tuple with < 15 columns: {}".format(tup)
+            )
+            return None
+        else:
+            return Item(
+                id=tup[0],
+                deleted=tup[1],
+                type=tup[2],
+                by=tup[3],
+                time=tup[4],
+                text=tup[5],
+                dead=tup[6],
+                parent=tup[7],
+                poll=tup[8],
+                kids=tup[9],
+                url=tup[10],
+                score=tup[11],
+                title=tup[12],
+                parts=tup[13],
+                descendants=tup[14],
+            )
+
+    @staticmethod
+    def from_db_call(query_res: List) -> Optional[Item]:
+        data = query_res[0]
+        return Item().from_tuple(data)
 
     def get_property(self, property_name: str) -> Optional[Any]:
         if hasattr(self, property_name):

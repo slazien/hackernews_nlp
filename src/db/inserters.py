@@ -15,11 +15,11 @@ class ItemInserter:
         self.table_name = table_name
         self.primary_key_name = "id"
 
-    def insert_item(self, item: Item):
+    def insert_item(self, item: Item) -> bool:
         logging.info("inserting item: {}".format(item))
-        id = item.get_property("id")
+        _id = item.get_property("id")
         deleted = item.get_property("deleted")
-        type = item.get_property("type")
+        _type = item.get_property("type")
         by = item.get_property("by")
         time = item.get_property("time")
         text = item.get_property("text")
@@ -35,21 +35,21 @@ class ItemInserter:
 
         sql = """
         INSERT INTO {} (id, deleted, type, by, time, text, dead, parent, poll, kids, url, score, title, parts, descendants)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """.format(
             self.table_name
         )
 
         # Insert only if id doesn't already exist
         if not is_value_exists(
-            self.conn_obj, self.table_name, self.primary_key_name, id
+            self.conn_obj, self.table_name, self.primary_key_name, _id
         ):
             self.cursor.execute(
                 sql,
                 (
-                    id,
+                    _id,
                     deleted,
-                    type,
+                    _type,
                     by,
                     time,
                     text,

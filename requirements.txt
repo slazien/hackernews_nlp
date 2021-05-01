@@ -3,3 +3,4 @@ requests==2.25.1
 ratelimit==2.2.1
 psycopg2==2.8.6
 luigi==3.0.3
+tqdm==4.60.0
