@@ -16,6 +16,10 @@ class CreateTableItems:
         self.cursor = self.conn.cursor()
 
     def create_table(self) -> bool:
+        """
+        Create a table for storing Items
+        :return: True if a table was created, False otherwise
+        """
         logging.info("creating table: {}".format(self.table_name))
         query_table = sql.SQL(
             """

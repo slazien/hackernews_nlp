@@ -19,12 +19,22 @@ class ItemAPI:
         self.URL = "https://hacker-news.firebaseio.com/v0/item/"
 
     def create_url(self, item_id: int) -> str:
+        """
+        Create a URL for calling HN API based on provided item ID
+        :param item_id: ID of the item to create the URL for
+        :return: URL to the item
+        """
         return self.URL + str(item_id) + ".json"
 
     # Hard rate limit, no exponential backoff
     @sleep_and_retry
     @limits(calls=RATE_LIMIT_DEFAULT, period=MINUTE)
     def get_item(self, item_id: int) -> Optional[Item]:
+        """
+        Get an item with a given ID
+        :param item_id: ID of the item to get
+        :return: an object of class Item (or None if an item does not exist)
+        """
         url = self.create_url(item_id=item_id)
         logging.info("making GET request: {}".format(url))
         res = get(url=url)
@@ -42,6 +52,11 @@ class ItemAPI:
             return comment
 
     def get_item_batch(self, item_ids: List[int]) -> List[Item]:
+        """
+        Get multiple items based on a list of provided IDs
+        :param item_ids: list of item IDs to get
+        :return: list of Item objects (or None if item doesn't exist)
+        """
         data_out_list = []
         for item_id in item_ids:
             data_out_list.append(self.get_item(item_id=item_id))
@@ -49,6 +64,11 @@ class ItemAPI:
         return data_out_list
 
     def get_all_kids_for_item_id(self, item_id: int) -> Optional[List[Item]]:
+        """
+        Get all kid items for a given item ID
+        :param item_id: item ID to get children for
+        :return: list of children IDs (or None if no children exist)
+        """
         item_kid_list = []
         item = self.get_item(item_id)
 
@@ -59,33 +79,13 @@ class ItemAPI:
         else:
             return None
 
-    def create_tree_for_item_id(self, item_id: int) -> Tree:
-        logging.info("creating tree for item_id: ".format(item_id))
-        tree_out = Tree()
-        item = self.get_item(item_id)
-        item_kids = self.get_all_kids_for_item_id(item_id)
-
-        # Create root node
-        tree_out.create_node(
-            tag=str(item.get_id()), identifier=item_id, data=item, parent=None
-        )
-
-        if item_kids is not None:
-            for item_kid in item_kids:
-                tree_out.create_node(
-                    tag=item_kid.get_id(),
-                    identifier=item_kid.get_id(),
-                    parent=item_id,
-                    data=item_kid,
-                )
-
-        logging.info("created tree for item_id: {}".format(item_id))
-
-        return tree_out
-
     @sleep_and_retry
     @limits(calls=RATE_LIMIT_DEFAULT, period=MINUTE)
-    def get_maxitem_id(self) -> int:
+    def get_maxitem_id(self) -> Optional[int]:
+        """
+        Get the ID of the latest item
+        :return: Id of the latest item
+        """
         url = "https://hacker-news.firebaseio.com/v0/maxitem.json"
         logging.info("making GET request: {}".format(url))
         res = get(url=url)
@@ -93,13 +93,19 @@ class ItemAPI:
         if res.status_code != 200:
             logging.error("GET request failed: {}".format(res.status_code))
             # raise Exception("API response: {}".format(res.status_code))
+            return None
+        else:
+            max_item_id = res.json()
+            logging.info("GET request succeeded, max_id: {}".format(max_item_id))
 
-        max_item_id = res.json()
-        logging.info("GET request succeeded, max_id: {}".format(max_item_id))
-
-        return max_item_id
+            return max_item_id
 
     def get_root_item(self, item_id: int) -> Optional[Item]:
+        """
+        Get the ID of the root item for a given item ID
+        :param item_id: item ID to get the root item ID for
+        :return: root item (object of type Item or None if the item doesn't exist)
+        """
         logging.info("getting root item for item_id: {}".format(item_id))
         item_cache = []
 
@@ -121,6 +127,11 @@ class ItemAPI:
             return None
 
     def build_tree_for_root_item(self, item: Item) -> Tree:
+        """
+        Given a root item, build a complete tree of all child items
+        :param item: root item to build a tree for
+        :return: an object of type Tree containing the root item and all of its children
+        """
         item_id = item.get_id()
         logging.info("creating tree for root item_id: {}".format(item_id))
         tree = Tree()

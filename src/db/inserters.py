@@ -16,6 +16,11 @@ class ItemInserter:
         self.primary_key_name = "id"
 
     def insert_item(self, item: Item) -> bool:
+        """
+        Insert an Item object into the DB
+        :param item: Item object to insert
+        :return: True if item was inserted, False otherwise
+        """
         logging.info("inserting item: {}".format(item))
         _id = item.get_property("id")
         deleted = item.get_property("deleted")

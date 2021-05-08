@@ -14,6 +14,10 @@ class Setup:
         self.dbcreate = DBCreate(conn=self.conn_initial, db_name=DB_NAME_HACKERNEWS)
 
     def run(self):
+        """
+        Create the DB and tables
+        :return:
+        """
         self.dbcreate.create_db()
         # self.conn_initial.close()
 

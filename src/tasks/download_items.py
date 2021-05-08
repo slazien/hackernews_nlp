@@ -22,6 +22,10 @@ class DownloadItemsTask(luigi.Task):
     end_id = luigi.IntParameter()
 
     def run(self):
+        """
+        Run the download task using Luigi for a given range of item IDs
+        :return:
+        """
         logging.info("starting luigi task: {}".format(self.__class__))
         conn = DBConnection(
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
