@@ -66,5 +66,7 @@ class ItemInserter:
             )
             self.conn.commit()
             logging.info("item inserted: {}".format(item))
+            return True
         else:
             logging.info("item already exists: {}".format(item))
+            return False
