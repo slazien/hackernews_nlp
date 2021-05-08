@@ -40,7 +40,6 @@ class ItemGetter:
             """.format(
                 self.table_name, self.col_name_id, item_id
             )
-            print(query)
             self.cursor.execute(query)
             item = Item().from_db_call(self.cursor.fetchall())
             return item

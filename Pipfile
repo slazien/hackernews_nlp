@@ -25,6 +25,9 @@ ratelimit = "*"
 luigi = "*"
 tqdm = "*"
 pre-commit = "*"
+nltk = "*"
+spacy = "*"
+unidecode = "*"
 
 [dev-packages]
 black = "*"
