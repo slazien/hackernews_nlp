@@ -23,16 +23,31 @@ class ItemGetter:
         self.col_name_id = column_name
 
     def _is_item_exists(self, item_id: int) -> bool:
+        """
+        Check if an item with a given ID exists in the DB
+        :param item_id: Id of the item to check existence of
+        :return: True if item exists, False otherwise
+        """
         return is_value_exists(
             self.conn_obj, self.table_name, self.col_name_id, item_id
         )
 
     def _are_items_exist(self, item_ids: tuple) -> bool:
+        """
+        Check if all item IDs in a given list exist in the DB
+        :param item_ids: list of item IDs to check existence of
+        :return: True if all items exist in DB, False otherwise
+        """
         return all_values_exist(
             self.conn_obj, self.table_name, self.col_name_id, item_ids
         )
 
     def get_item(self, item_id: int) -> Optional[Item]:
+        """
+        Get an Item object with a given ID from the DB
+        :param item_id: ID of the item to get
+        :return: Item object if exists, None otherwise
+        """
         logging.info("getting item with id: {}".format(item_id))
         if self._is_item_exists(item_id):
             query = """
@@ -50,6 +65,12 @@ class ItemGetter:
     def get_item_range(
         self, item_id_start: int, item_id_end: int
     ) -> Optional[List[Item]]:
+        """
+        Get all items for a given range of item IDs
+        :param item_id_start: beginning ID for the range
+        :param item_id_end: ending ID for the range
+        :return: a list of Item objects, None if not all items exist
+        """
         logging.info(
             "getting items with ids in range: [{}, {}]".format(
                 item_id_start, item_id_end

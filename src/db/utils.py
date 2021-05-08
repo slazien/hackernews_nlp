@@ -7,6 +7,12 @@ from src.db.connection import DBConnection
 
 
 def is_table_exists(conn: DBConnection, table_name: str) -> bool:
+    """
+    Check if a given table exists in the DB
+    :param conn: DBConnection object
+    :param table_name: name of the table to check
+    :return: True if table exists, False otherwise
+    """
     logging.info("checking if table {} exists".format(table_name))
     try:
         cursor = conn.get_cursor()
@@ -38,7 +44,17 @@ def is_table_exists(conn: DBConnection, table_name: str) -> bool:
         raise Exception("Exception: {}".format(e))
 
 
-def is_value_exists(conn: DBConnection, table_name: str, column_name: str, value: Any):
+def is_value_exists(
+    conn: DBConnection, table_name: str, column_name: str, value: Any
+) -> bool:
+    """
+    Check if a given value exists in a given column in a given table
+    :param conn: DBConnection object
+    :param table_name: name of the table
+    :param column_name: name of the column
+    :param value: value to check existence of
+    :return: True if the value exists, False otherwise
+    """
     logging.info(
         "checking if value {} exists in column {} in table {}".format(
             value, column_name, table_name
@@ -67,6 +83,14 @@ def is_value_exists(conn: DBConnection, table_name: str, column_name: str, value
 def all_values_exist(
     conn: DBConnection, table_name: str, column_name: str, values: tuple
 ) -> bool:
+    """
+    Check if all provided values exist in a given table in a given column
+    :param conn: DBConnection object
+    :param table_name: name of the table
+    :param column_name: name of the column
+    :param values: tuple of all values to check existence of
+    :return: True if all values exist, False otherwise
+    """
     logging.info(
         "checking if range of values [{}, {}] exists in column {} in table {}".format(
             min(values), max(values), column_name, table_name

@@ -25,6 +25,10 @@ if args.loggingenabled == 0:
 
 
 def main():
+    """
+    Set up the DB and tables, download items for a given item ID range, insert them into the DB
+    :return:
+    """
     logging.basicConfig(
         filename=LOG_FILENAME,
         format="%(asctime)s - %(levelname)s - %(message)s",

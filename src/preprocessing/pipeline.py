@@ -14,6 +14,11 @@ class TextPreprocessor:
         self.to_lowercase = to_lowercase
 
     def process(self, text: str) -> Optional[str]:
+        """
+        Process a single string by applying cleaning methods defined in text.py
+        :param text: string to process
+        :return: processed string, None if supplied string was None
+        """
         if text is None:
             return None
         text = strip_html(text)
@@ -26,6 +31,10 @@ class TextPreprocessor:
         return text
 
     def process_multiprocessing(self) -> List[str]:
+        """
+        Parallelize the process method using n - 1 CPU cores
+        :return: list of processed strings
+        """
         with Pool(NUM_CORES) as pool:
             text_processed = list(
                 tqdm(pool.imap(self.process, self.text_list), total=len(self.text_list))

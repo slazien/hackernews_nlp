@@ -40,24 +40,44 @@ class Item:
         self.descendants = descendants
 
     def get_id(self) -> int:
+        """
+        Get the ID of the Item object
+        :return: ID of the Item
+        """
         return self.id
 
     def has_kids(self) -> bool:
+        """
+        Check if an item has any kids
+        :return: True if any kids exist, False otherwise
+        """
         if self.kids is None or len(self.kids) == 0:
             return False
         else:
             return True
 
     def get_kids_ids(self) -> Optional[List[int]]:
+        """
+        Get kid IDs of an Item
+        :return: list of kid IDs if any exist, None otherwise
+        """
         if self.has_kids():
             return self.kids
         else:
             return None
 
     def has_parent(self) -> bool:
+        """
+        Check if an Item has a parent
+        :return: True if parent exists, False otherwise
+        """
         return self.parent is not None
 
     def get_parent_id(self) -> Optional[id]:
+        """
+        Get item parent's ID
+        :return: Id of the parent if exists, None otherwise
+        """
         if self.has_parent():
             return self.parent
         else:
@@ -65,6 +85,11 @@ class Item:
 
     @staticmethod
     def from_api_call(data: dict) -> Item:
+        """
+        Create an Item object from a dict
+        :param data: dict of key:value pairs with field values from the API
+        :return: an Item object
+        """
         return Item(
             id=data["id"] if "id" in data else None,
             deleted=data["deleted"] if "deleted" in data else None,
@@ -85,6 +110,11 @@ class Item:
 
     @staticmethod
     def from_tuple(tup: tuple) -> Optional[Item]:
+        """
+        Create an Item object from a tuple (order of values must be the same as in the `from_api_call` method)
+        :param tup: tuple of values to create an Item from
+        :return: Item object if the number of values matches the number of needed fields, None otherwise
+        """
         # If there aren't 15 columns
         if len(tup) != 15:
             logging.warning(
@@ -112,10 +142,20 @@ class Item:
 
     @staticmethod
     def from_db_call(query_res: List) -> Optional[Item]:
+        """
+        Create an Item object from the results of a DB query
+        :param query_res: result of a DB query
+        :return: Item object if number of values matches the number of fields, None otherwise
+        """
         data = query_res[0]
         return Item().from_tuple(data)
 
     def get_property(self, property_name: str) -> Optional[Any]:
+        """
+        Get the value of a given Item's property
+        :param property_name: name of the property to get the value of
+        :return: property value if exists, None otherwise
+        """
         if hasattr(self, property_name):
             return getattr(self, property_name)
         else:

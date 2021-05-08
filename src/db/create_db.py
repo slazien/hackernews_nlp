@@ -13,6 +13,10 @@ class DBCreate:
         self.conn = conn.get_conn()
 
     def create_db(self):
+        """
+        Create an empty PostgreSQL DB
+        :return:
+        """
         logging.info("creating db with db_name: {}".format(self.db_name))
         self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.conn.autocommit = True
