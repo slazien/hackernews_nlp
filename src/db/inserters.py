@@ -1,23 +1,36 @@
 import logging
 
+from psycopg2 import sql
+
 from src.db.connection import DBConnection
-from src.db.constants import TABLE_NAME_ITEMS
+from src.db.constants import (
+    PRIMARY_KEY_NAME_ITEMS,
+    PRIMARY_KEY_NAME_USERS,
+    TABLE_NAME_ITEMS,
+    TABLE_NAME_USERS,
+)
 from src.db.utils import is_value_exists
 from src.entities.item import Item
+from src.entities.user import User
 
 
 class ItemInserter:
-    def __init__(self, conn: DBConnection, table_name: str = TABLE_NAME_ITEMS):
+    def __init__(
+        self,
+        conn: DBConnection,
+        table_name: str = TABLE_NAME_ITEMS,
+        primary_key_name: str = PRIMARY_KEY_NAME_ITEMS,
+    ):
         self.conn_obj = conn
         self.conn = conn.get_conn()
         self.cursor = conn.get_cursor()
-        # self.conn.autocommit = True
+        self.conn.autocommit = True
         self.table_name = table_name
-        self.primary_key_name = "id"
+        self.primary_key_name = primary_key_name
 
     def insert_item(self, item: Item) -> bool:
         """
-        Insert an Item object into the DB
+        Insert an Item object into the DB if it doesn't exist, skip otherwise
         :param item: Item object to insert
         :return: True if item was inserted, False otherwise
         """
@@ -38,19 +51,20 @@ class ItemInserter:
         parts = item.get_property("parts")
         descendants = item.get_property("descendants")
 
-        sql = """
-        INSERT INTO {} (id, deleted, type, by, time, text, dead, parent, poll, kids, url, score, title, parts, descendants)
+        query = """
+        INSERT INTO {table} 
+        (id, deleted, type, by, time, text, dead, parent, poll, kids, url, score, title, parts, descendants)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-        """.format(
-            self.table_name
-        )
+        """
+
+        query_sql = sql.SQL(query).format(table=sql.Identifier(self.table_name))
 
         # Insert only if id doesn't already exist
         if not is_value_exists(
             self.conn_obj, self.table_name, self.primary_key_name, _id
         ):
             self.cursor.execute(
-                sql,
+                query_sql,
                 (
                     _id,
                     deleted,
@@ -69,9 +83,50 @@ class ItemInserter:
                     descendants,
                 ),
             )
-            self.conn.commit()
             logging.info("item inserted: {}".format(item))
             return True
         else:
             logging.info("item already exists: {}".format(item))
+            return False
+
+
+class UserInserter:
+    def __init__(
+        self,
+        conn: DBConnection,
+        table_name: str = TABLE_NAME_USERS,
+        primary_key_name: str = PRIMARY_KEY_NAME_USERS,
+    ):
+        self.conn_obj = conn
+        self.conn = conn.get_conn()
+        self.cursor = conn.get_cursor()
+        self.conn.autocommit = True
+        self.table_name = table_name
+        self.primary_key_name = primary_key_name
+
+    def insert_user(self, user: User) -> bool:
+        """
+        Insert a User object into the DB if it doesn't exist, skip otherwise
+        :param user: User object to insert
+        :return: True if user was inserted, False otherwise
+        """
+        logging.info("inserting user: {}".format(user))
+        _id = user.get_property("id")
+        created = user.get_property("created")
+        karma = user.get_property("karma")
+        about = user.get_property("about")
+        submitted = user.get_property("submitted")
+
+        query = "INSERT INTO {} (id, created, karma, about, submitted) VALUES (%s, %s, %s, %s, %s);"
+
+        query_sql = sql.SQL(query).format(sql.Identifier(self.table_name))
+
+        if not is_value_exists(
+            self.conn_obj, self.table_name, self.primary_key_name, _id
+        ):
+            self.cursor.execute(query_sql, (_id, created, karma, about, submitted))
+            logging.info("user inserted: {}".format(user))
+            return True
+        else:
+            logging.info("user already exists: {}".format(user))
             return False

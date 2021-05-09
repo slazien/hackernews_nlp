@@ -30,7 +30,7 @@ class TextPreprocessor:
 
         return text
 
-    def process_multiprocessing(self) -> List[str]:
+    def process_multiprocessing(self) -> List[Optional[str]]:
         """
         Parallelize the process method using n - 1 CPU cores
         :return: list of processed strings

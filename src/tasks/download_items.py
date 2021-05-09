@@ -12,9 +12,6 @@ from src.db.constants import (
     TABLE_NAME_ITEMS,
 )
 from src.db.inserters import ItemInserter
-from src.db.utils import is_value_exists
-
-PATH = "../../data/items"
 
 
 class DownloadItemsTask(luigi.Task):
@@ -31,13 +28,10 @@ class DownloadItemsTask(luigi.Task):
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
         )
         item_api = ItemAPI()
-        item_inserter = ItemInserter(conn, TABLE_NAME_ITEMS)
+        item_inserter = ItemInserter(conn, TABLE_NAME_ITEMS, PRIMARY_KEY_NAME_ITEMS)
 
         for item_id in tqdm(range(self.start_id, self.end_id)):
             current_item = item_api.get_item(item_id=item_id)
-            if not is_value_exists(
-                conn, TABLE_NAME_ITEMS, PRIMARY_KEY_NAME_ITEMS, current_item.get_id()
-            ):
-                item_inserter.insert_item(current_item)
+            item_inserter.insert_item(current_item)
 
         logging.info("finished task: {}".format(self.__class__))

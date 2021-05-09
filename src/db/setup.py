@@ -1,9 +1,9 @@
 import logging
 
 from src.db.connection import DBConnection
-from src.db.constants import DB_NAME_HACKERNEWS, DB_NAME_INITIAL, DB_PASSWORD
+from src.db.constants import *
 from src.db.create_db import DBCreate
-from src.db.create_tables import CreateTableItems
+from src.db.create_tables import CreateTable
 
 
 class Setup:
@@ -25,12 +25,20 @@ class Setup:
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
         )
 
-        table_items = CreateTableItems(conn=conn_hackernews)
+        table_items = CreateTable(conn=conn_hackernews, table_name=TABLE_NAME_ITEMS)
+        table_users = CreateTable(conn=conn_hackernews, table_name=TABLE_NAME_USERS)
 
-        tables = [table_items]
+        tables = [table_items, table_users]
 
         logging.info("creating all tables")
         for table in tables:
-            table.create_table()
+            table_name = table.get_name()
+            query_create_table = TABLES[table_name]["QUERY_CREATE_TABLE"]
+            query_create_index = TABLES[table_name]["QUERY_CREATE_INDEX"]
+            was_created = table.create_table(query_create_table, query_create_index)
+            if was_created:
+                logging.info("table created: {}".format(table.get_name()))
+            else:
+                logging.info("table not created: {}".format(table.get_name()))
 
         conn_hackernews.close_conn()

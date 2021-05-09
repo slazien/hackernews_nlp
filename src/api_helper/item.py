@@ -38,6 +38,7 @@ class ItemAPI:
         url = self.create_url(item_id=item_id)
         logging.info("making GET request: {}".format(url))
         res = get(url=url)
+
         if res.status_code != 200:
             logging.warning(
                 "GET request failed: {}, item_id: {}".format(res.status_code, item_id)
@@ -48,8 +49,8 @@ class ItemAPI:
             return None
         else:
             logging.info("GET request succeeded for item_id: {}".format(item_id))
-            comment = Item().from_api_call(res.json())
-            return comment
+            item = Item().from_api_call(res.json())
+            return item
 
     def get_item_batch(self, item_ids: List[int]) -> List[Item]:
         """
