@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Set, Tuple, Union
+from typing import Any
 
 from psycopg2 import sql
 
@@ -61,15 +61,15 @@ def is_value_exists(
         )
     )
 
-    query_exists = """
-    SELECT EXISTS(
-    SELECT 1 FROM {} WHERE {}={}
-    );
-    """.format(
-        table_name, column_name, value
+    query_exists = sql.SQL(
+        "SELECT EXISTS(SELECT 1 FROM {table} WHERE {column} = %s);"
+    ).format(
+        table=sql.Identifier(table_name),
+        column=sql.Identifier(column_name),
     )
+
     cursor = conn.get_cursor()
-    cursor.execute(sql.SQL(query_exists))
+    cursor.execute(query_exists, (value,))
     res = cursor.fetchall()[0][0]
 
     if res:
@@ -97,14 +97,14 @@ def all_values_exist(
         )
     )
 
-    query_exist = """
-    SELECT COUNT({}) FROM {} WHERE {} IN {}
-    """.format(
-        column_name, table_name, column_name, values
+    query = "SELECT COUNT({column}) FROM {table} WHERE {column} IN %s;"
+
+    query_sql = sql.SQL(query).format(
+        column=sql.Identifier(column_name), table=sql.Identifier(table_name)
     )
 
     cursor = conn.get_cursor()
-    cursor.execute(sql.SQL(query_exist))
+    cursor.execute(query_sql, values)
     res = cursor.fetchall()[0][0]
 
     # Check if the count of returned values is the same as the count of the input values

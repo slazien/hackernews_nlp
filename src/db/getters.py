@@ -4,9 +4,16 @@ from typing import List, Optional
 from psycopg2 import sql
 
 from src.db.connection import DBConnection
-from src.db.constants import PRIMARY_KEY_NAME_ITEMS, TABLE_NAME_ITEMS
+from src.db.constants import (
+    KEY_NAME_USER_ID_ITEMS,
+    PRIMARY_KEY_NAME_ITEMS,
+    PRIMARY_KEY_NAME_USERS,
+    TABLE_NAME_ITEMS,
+    TABLE_NAME_USERS,
+)
 from src.db.utils import all_values_exist, is_value_exists
 from src.entities.item import Item
+from src.entities.user import User
 
 
 class ItemGetter:
@@ -49,15 +56,16 @@ class ItemGetter:
         :return: Item object if exists, None otherwise
         """
         logging.info("getting item with id: {}".format(item_id))
+
         if self._is_item_exists(item_id):
-            query = """
-            SELECT * FROM {} WHERE {} = {};
-            """.format(
-                self.table_name, self.col_name_id, item_id
+            query = "SELECT * FROM {table} WHERE {column} = %s;"
+            query_sql = sql.SQL(query).format(
+                table=sql.Identifier(self.table_name),
+                column=sql.Identifier(self.col_name_id),
             )
-            self.cursor.execute(query)
-            item = Item().from_db_call(self.cursor.fetchall())
-            return item
+            self.cursor.execute(query_sql, item_id)
+
+            return Item().from_db_call(self.cursor.fetchall())
         else:
             logging.info("item with id: {} does not exist".format(item_id))
             return None
@@ -76,15 +84,91 @@ class ItemGetter:
                 item_id_start, item_id_end
             )
         )
+
         id_range = tuple(list(range(item_id_start, item_id_end + 1)))
+
         if self._are_items_exist(id_range):
-            query = """
-            SELECT * FROM {} WHERE {} IN {}
-            """.format(
-                self.table_name, self.col_name_id, id_range
+            query = "SELECT * FROM {table} WHERE {column} IN %s;"
+            query_sql = sql.SQL(query).format(
+                table=sql.Identifier(self.table_name),
+                column=sql.Identifier(self.col_name_id),
             )
-            self.cursor.execute(sql.SQL(query))
+            self.cursor.execute(query_sql, id_range)
             res = self.cursor.fetchall()
+
             return [Item().from_tuple(item) for item in res]
         else:
             return None
+
+
+class UserGetter:
+    def __init__(
+        self,
+        conn: DBConnection,
+        table_name: str = TABLE_NAME_USERS,
+        column_name: str = PRIMARY_KEY_NAME_USERS,
+    ):
+        self.conn_obj = conn
+        self.conn = conn.get_conn()
+        self.cursor = conn.get_cursor()
+        self.table_name = table_name
+        self.col_name_id = column_name
+
+    def _is_user_exists(self, user_id: str) -> bool:
+        """
+        Check if a user with a given ID exists in the DB
+        :param user_id: Id of the user to check existence of
+        :return: True if user exists, False otherwise
+        """
+        return is_value_exists(
+            self.conn_obj, self.table_name, self.col_name_id, user_id
+        )
+
+    def _are_users_exist(self, user_ids: tuple) -> bool:
+        """
+        Check if all user IDs in a given list exist in the DB
+        :param user_ids: list of user IDs to check existence of
+        :return: True if all users exist in DB, False otherwise
+        """
+        return all_values_exist(
+            self.conn_obj, self.table_name, self.col_name_id, user_ids
+        )
+
+    def get_user(self, user_id: str) -> Optional[User]:
+        """
+        Get a User object with a given ID from the DB
+        :param user_id: ID of the user to get
+        :return: User object if exists, None otherwise
+        """
+        logging.info("getting user with id: {}".format(user_id))
+
+        if self._is_user_exists(user_id):
+            query = "SELECT * FROM {table} WHERE {column} = %s;"
+            query_sql = sql.SQL(query).format(
+                table=sql.Identifier(self.table_name),
+                column=sql.Identifier(self.col_name_id),
+            )
+            self.cursor.execute(query_sql, user_id)
+            user = User().from_db_call(self.cursor.fetchall())
+
+            return user
+        else:
+            logging.info("user with id: {} does not exist".format(user_id))
+            return None
+
+    def get_all_user_ids(self) -> Optional[List[str]]:
+        """
+        Get all user IDs existing in the DB
+        :return: a list of user IDs (if any)
+        """
+        logging.info("getting all user ids")
+
+        query = "SELECT DISTINCT {column} FROM {table};"
+        query_sql = sql.SQL(query).format(
+            column=sql.Identifier(KEY_NAME_USER_ID_ITEMS),
+            table=sql.Identifier(TABLE_NAME_ITEMS),
+        )
+        self.cursor.execute(query_sql)
+        res = self.cursor.fetchall()
+
+        return [user_id[0] for user_id in res if user_id[0] is not None]

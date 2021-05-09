@@ -1,59 +1,43 @@
 import logging
+from typing import Optional
 
 from psycopg2 import sql
 
 from src.db.connection import DBConnection
-from src.db.constants import PRIMARY_KEY_NAME_ITEMS, TABLE_NAME_ITEMS
 from src.db.utils import is_table_exists
 
 
-class CreateTableItems:
-    def __init__(self, conn: DBConnection, table_name: str = TABLE_NAME_ITEMS):
+class CreateTable:
+    def __init__(self, conn: DBConnection, table_name: str):
         self.table_name = table_name
         self.conn_object = conn
         self.conn = conn.get_conn()
         self.conn.autocommit = True
         self.cursor = self.conn.cursor()
 
-    def create_table(self) -> bool:
+    def get_name(self) -> str:
         """
-        Create a table for storing Items
+        Get table's name
+        :return: string with table's name
+        """
+        return self.table_name
+
+    def create_table(self, query: str, query_index: Optional[str]) -> bool:
+        """
+        Create a table
+        :param query: string with SQL query to create a table
+        :param query_index: optional SQL query to create an index on a column
         :return: True if a table was created, False otherwise
         """
         logging.info("creating table: {}".format(self.table_name))
-        query_table = sql.SQL(
-            """
-        CREATE TABLE items (
-            id integer PRIMARY KEY,
-            deleted bool,
-            type varchar,
-            by varchar,
-            time bigint,
-            text varchar,
-            dead bool,
-            parent integer,
-            poll integer,
-            kids integer[],
-            url varchar,
-            score integer,
-            title varchar,
-            parts integer[],
-            descendants integer
-            );
-        """
-        )
-
-        query_index = """
-        CREATE INDEX index_{} ON {}({});
-        """.format(
-            PRIMARY_KEY_NAME_ITEMS, TABLE_NAME_ITEMS, PRIMARY_KEY_NAME_ITEMS
-        )
+        query_table = sql.SQL(query)
 
         if not is_table_exists(self.conn_object, self.table_name):
             # Create table
             self.cursor.execute(query_table)
             # Create index
-            self.cursor.execute(query_index)
+            if query_index is not None:
+                self.cursor.execute(sql.SQL(query_index))
             self.cursor.close()
             self.conn.close()
             return True
