@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Iterable, Optional
 
 from psycopg2 import sql
 
@@ -109,3 +109,67 @@ def all_values_exist(
 
     # Check if the count of returned values is the same as the count of the input values
     return res == len(values)
+
+
+def get_column_values(
+    conn: DBConnection,
+    table_name: str,
+    column_name: str,
+    limit: Optional[int] = None,
+    fetch_size: int = 10000,
+) -> Optional[Iterable[Any]]:
+    """
+    Get all values in a given column in a given table
+    :param conn: DBConnection object
+    :param table_name: name of the table
+    :param column_name: name of the column
+    :param limit: maximum number of values to return
+    :param fetch_size: number of rows to fetch in one batch
+    :return: generator of values (if any) in the column
+    """
+    logging.info("getting all values for column: {}".format(column_name))
+
+    cursor = conn.get_named_cursor("cursor_get_column_values")
+    cursor.itersize = 10000
+
+    if limit:
+        query = "SELECT {column} FROM {table} LIMIT %s;"
+    else:
+        query = "SELECT {column} FROM {table};"
+
+    query_sql = sql.SQL(query).format(
+        column=sql.Identifier(column_name), table=sql.Identifier(table_name)
+    )
+    cursor.execute(query_sql, [limit] if limit else None)
+
+    while True:
+        rows = cursor.fetchmany(fetch_size)
+        if not rows:
+            break
+        for row in rows:
+            yield row[0]
+
+
+def get_value_count_in_column(
+    conn: DBConnection, table_name: str, column_name: str
+) -> int:
+    """
+    Count the number of values in a column
+    :param conn: DBConnection object
+    :param table_name: name of the table
+    :param column_name: name of the column
+    :return: count of values
+    """
+    logging.info(
+        "getting value count in column: {}, table: {}".format(column_name, table_name)
+    )
+
+    query = "SELECT COUNT({column}) FROM {table}"
+    query_sql = sql.SQL(query).format(
+        column=sql.Identifier(column_name), table=sql.Identifier(table_name)
+    )
+    cursor = conn.get_cursor()
+    cursor.execute(query_sql)
+    res = cursor.fetchone()
+
+    return res[0]
