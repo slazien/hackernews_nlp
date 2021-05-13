@@ -40,7 +40,7 @@ class TextPreprocessor:
         texts: Iterable[str],
         file_name: str,
         total_count: int,
-        batch_size: int = 10000,
+        batch_size: int = 100000,
     ):
         """
         Parallelize the process method using n - 1 CPU cores and save results in batches to a file
@@ -57,7 +57,7 @@ class TextPreprocessor:
             with open(file_name, "a") as f:
                 with Pool(NUM_CORES) as pool:
                     while True:
-                        # Create a batch of texts and cast it to a list for use in pool.imap
+                        # Create a batch of texts as a list for use in pool.imap
                         current_batch = []
                         for i in range(batch_size):
                             current_batch.append(next(texts))
