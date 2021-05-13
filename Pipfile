@@ -28,6 +28,7 @@ pre-commit = "*"
 nltk = "*"
 spacy = "*"
 unidecode = "*"
+gensim = "*"
 
 [dev-packages]
 black = "*"
