@@ -1,9 +1,22 @@
 from multiprocessing import cpu_count
-from typing import List
+from typing import Iterable, List
 
 from gensim.models import KeyedVectors, Word2Vec
+from gensim.models.callbacks import CallbackAny2Vec
 
 NUM_CORES = cpu_count() - 1
+
+
+class EpochLogger(CallbackAny2Vec):
+    def __init__(self):
+        self.epoch = 1
+
+    def on_epoch_begin(self, model):
+        print("Epoch #{} start".format(self.epoch))
+
+    def on_epoch_end(self, model):
+        print("Epoch #{} end".format(self.epoch))
+        self.epoch += 1
 
 
 class Word2VecTrainer:
@@ -13,23 +26,25 @@ class Word2VecTrainer:
 
     def __init__(
         self,
-        text_list: List[List[str]],
+        texts: Iterable[List[str]],
         vector_size: int,
         window: int,
         min_count: int,
         negative: int,
         workers: int = NUM_CORES,
     ):
-        self.text_list = text_list
+        self.text_list = texts
         self.model = Word2Vec(
-            sentences=text_list,
+            sentences=texts,
             vector_size=vector_size,
             window=window,
             min_count=min_count,
             negative=negative,
             workers=workers,
+            callbacks=[self.epoch_logger],
         )
         self.was_trained = False
+        self.epoch_logger = EpochLogger()
 
     def train(self, epochs: int = 5) -> Word2Vec:
         """
