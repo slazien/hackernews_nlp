@@ -29,6 +29,8 @@ nltk = "*"
 spacy = "*"
 unidecode = "*"
 gensim = "*"
+textblob = "*"
+transformers = "*"
 
 [dev-packages]
 black = "*"

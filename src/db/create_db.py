@@ -6,7 +6,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from src.db.connection import DBConnection
 
 
-class DBCreate:
+class DBCreator:
     def __init__(self, conn: DBConnection, db_name: str):
         self.db_name = db_name
         self.cursor = conn.get_cursor()

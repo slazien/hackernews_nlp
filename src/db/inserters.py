@@ -11,6 +11,7 @@ from src.db.constants import (
 )
 from src.db.utils import is_value_exists
 from src.entities.item import Item
+from src.entities.text import Text
 from src.entities.user import User
 
 
@@ -129,4 +130,38 @@ class UserInserter:
             return True
         else:
             logging.info("user already exists: {}".format(user))
+            return False
+
+
+class TextInserter:
+    def __init__(self, conn: DBConnection, table_name: str, primary_key_name: str):
+        self.conn_obj = conn
+        self.conn = conn.get_conn()
+        self.cursor = conn.get_cursor()
+        self.conn.autocommit = True
+        self.table_name = table_name
+        self.primary_key_name = primary_key_name
+
+    def insert_text(self, text: Text) -> bool:
+        """
+        Insert a User object into the DB if it doesn't exist, skip otherwise
+        :param text: text to insert
+        :return: True if text was inserted, False otherwise
+        """
+        logging.info("inserting text: {}".format(text))
+
+        id_item = text.get_id_item()
+        text_str = text.get_text()
+
+        query = "INSERT INTO {} (id_item, text) VALUES (%s, %s);"
+        query_sql = sql.SQL(query).format(id_item, text_str)
+
+        if not is_value_exists(
+            self.conn_obj, self.table_name, self.primary_key_name, id_item
+        ):
+            self.cursor.execute(query_sql, (id_item, text_str))
+            logging.info("text inserted: {}".format(text_str))
+            return True
+        else:
+            logging.info("text already exists: {}".format(text))
             return False

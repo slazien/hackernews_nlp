@@ -27,12 +27,16 @@ class User:
         return self.id
 
     @staticmethod
-    def from_api_call(data: dict) -> User:
+    def from_api_call(data: dict) -> Optional[User]:
         """
         Create a User object from a dict
         :param data: dict of key:value pairs with field values from the API
         :return: a User object
         """
+
+        if data is None:
+            return None
+
         return User(
             id=data["id"] if "id" in data else None,
             created=data["created"] if "created" in data else None,

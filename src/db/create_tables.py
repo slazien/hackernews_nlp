@@ -7,7 +7,7 @@ from src.db.connection import DBConnection
 from src.db.utils import is_table_exists
 
 
-class CreateTable:
+class TableCreator:
     def __init__(self, conn: DBConnection, table_name: str):
         self.table_name = table_name
         self.conn_object = conn

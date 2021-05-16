@@ -84,12 +84,16 @@ class Item:
             return None
 
     @staticmethod
-    def from_api_call(data: dict) -> Item:
+    def from_api_call(data: dict) -> Optional[Item]:
         """
         Create an Item object from a dict
         :param data: dict of key:value pairs with field values from the API
         :return: an Item object
         """
+
+        if data is None:
+            return None
+
         return Item(
             id=data["id"] if "id" in data else None,
             deleted=data["deleted"] if "deleted" in data else None,
