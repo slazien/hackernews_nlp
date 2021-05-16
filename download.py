@@ -9,8 +9,8 @@ from src.db.connection import DBConnection
 from src.db.constants import *
 from src.db.getters import UserGetter
 from src.db.setup import Setup
-from src.tasks.download_items import DownloadItemsTask
-from src.tasks.download_users import DownloadUsersTask
+from src.tasks.download_items import TaskDownloadItems
+from src.tasks.download_users import TaskDownloadUsers
 from src.utils.list import chunk_for_size
 
 # Use the current epoch time as log file name
@@ -71,7 +71,7 @@ def main():
     for range_ids in ranges_items:
         start_id = range_ids[0]
         end_id = range_ids[1]
-        task_list.append(DownloadItemsTask(start_id=start_id, end_id=end_id))
+        task_list.append(TaskDownloadItems(start_id=start_id, end_id=end_id))
 
     conn = DBConnection("postgres", DB_PASSWORD, DB_NAME_HACKERNEWS)
     user_getter = UserGetter(conn, TABLE_NAME_USERS, PRIMARY_KEY_NAME_USERS)
@@ -82,7 +82,7 @@ def main():
         chunk_size_users = int(len(user_ids_all) / args.workers)
         ranges_users = chunk_for_size(user_ids_all, chunk_size_users)
         for range_users in ranges_users:
-            task_list.append(DownloadUsersTask(user_ids=range_users))
+            task_list.append(TaskDownloadUsers(user_ids=range_users))
 
     luigi.build(
         task_list,

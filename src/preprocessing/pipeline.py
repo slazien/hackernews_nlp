@@ -78,5 +78,6 @@ class TextPreprocessor:
                         for text in text_processed_batch:
                             if text is not None:
                                 f.write(text + "\n")
+
                             num_processed += 1
                             pbar.update(num_processed)

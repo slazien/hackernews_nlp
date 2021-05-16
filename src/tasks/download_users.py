@@ -15,7 +15,7 @@ from src.db.getters import UserGetter
 from src.db.inserters import UserInserter
 
 
-class DownloadUsersTask(luigi.Task):
+class TaskDownloadUsers(luigi.Task):
     user_ids = luigi.ListParameter()
 
     def run(self):
@@ -38,6 +38,7 @@ class DownloadUsersTask(luigi.Task):
 
         for user_id in tqdm(user_ids_intersection):
             current_user = user_api.get_user(user_id=user_id)
-            user_inserter.insert_user(current_user)
+            if current_user is not None:
+                user_inserter.insert_user(current_user)
 
         logging.info("finished task: {}".format(self.__class__))

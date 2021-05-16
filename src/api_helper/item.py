@@ -41,18 +41,18 @@ class ItemAPI:
 
         if res.status_code != 200:
             logging.warning(
-                "GET request failed: {}, item_id: {}".format(res.status_code, item_id)
+                "GET request failed: {}, id_item: {}".format(res.status_code, item_id)
             )
             # raise Exception(
-            #     "API response: {}. Item id: {}".format(res.status_code, item_id)
+            #     "API response: {}. Item id: {}".format(res.status_code, id_item)
             # )
             return None
         else:
-            logging.info("GET request succeeded for item_id: {}".format(item_id))
+            logging.info("GET request succeeded for id_item: {}".format(item_id))
             item = Item().from_api_call(res.json())
             return item
 
-    def get_item_batch(self, item_ids: List[int]) -> List[Item]:
+    def get_item_batch(self, item_ids: List[int]) -> List[Optional[Item]]:
         """
         Get multiple items based on a list of provided IDs
         :param item_ids: list of item IDs to get
@@ -64,7 +64,7 @@ class ItemAPI:
 
         return data_out_list
 
-    def get_all_kids_for_item_id(self, item_id: int) -> Optional[List[Item]]:
+    def get_all_kids_for_item_id(self, item_id: int) -> Optional[List[Optional[Item]]]:
         """
         Get all kid items for a given item ID
         :param item_id: item ID to get children for
@@ -107,7 +107,7 @@ class ItemAPI:
         :param item_id: item ID to get the root item ID for
         :return: root item (object of type Item or None if the item doesn't exist)
         """
-        logging.info("getting root item for item_id: {}".format(item_id))
+        logging.info("getting root item for id_item: {}".format(item_id))
         item_cache = []
 
         # Get initial item
@@ -120,11 +120,11 @@ class ItemAPI:
 
         if len(item_cache) > 0:
             logging.info(
-                "got root item for item_id: {}, id: {}".format(item_id, item_cache[-1])
+                "got root item for id_item: {}, id: {}".format(item_id, item_cache[-1])
             )
             return item_cache[-1]
         else:
-            logging.warning("found no root item for item_id: {}".format(item_id))
+            logging.warning("found no root item for id_item: {}".format(item_id))
             return None
 
     def build_tree_for_root_item(self, item: Item) -> Tree:
@@ -134,11 +134,11 @@ class ItemAPI:
         :return: an object of type Tree containing the root item and all of its children
         """
         item_id = item.get_id()
-        logging.info("creating tree for root item_id: {}".format(item_id))
+        logging.info("creating tree for root id_item: {}".format(item_id))
         tree = Tree()
         stack = deque([])
 
-        # Preorder contains ids of all visited nodes
+        # IDs of all visited nodes
         preorder = [item_id]
 
         # Add the root node to the tree
@@ -151,10 +151,10 @@ class ItemAPI:
         stack.append(item)
 
         while len(stack) > 0:
-            # Flag checks if all children nodes have been visited
+            # Check if all children nodes have been visited
             flag = 0
 
-            # CASE 1: if the top of the stack is a leaf node (== doesn't have children),
+            # CASE 1: if the top of the stack is a leaf node (i.e. doesn't have children),
             # remove it from the stack
             if not stack[-1].has_kids():
                 stack.pop()
@@ -182,5 +182,5 @@ class ItemAPI:
             if flag == 0:
                 stack.pop()
 
-        logging.info("finished creating tree for item_id: {}".format(item_id))
+        logging.info("finished creating tree for id_item: {}".format(item_id))
         return tree

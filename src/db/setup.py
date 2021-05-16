@@ -2,8 +2,8 @@ import logging
 
 from src.db.connection import DBConnection
 from src.db.constants import *
-from src.db.create_db import DBCreate
-from src.db.create_tables import CreateTable
+from src.db.create_db import DBCreator
+from src.db.create_tables import TableCreator
 
 
 class Setup:
@@ -11,7 +11,7 @@ class Setup:
         self.conn_initial = DBConnection(
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_INITIAL
         )
-        self.dbcreate = DBCreate(conn=self.conn_initial, db_name=DB_NAME_HACKERNEWS)
+        self.dbcreate = DBCreator(conn=self.conn_initial, db_name=DB_NAME_HACKERNEWS)
 
     def run(self):
         """
@@ -25,10 +25,11 @@ class Setup:
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
         )
 
-        table_items = CreateTable(conn=conn_hackernews, table_name=TABLE_NAME_ITEMS)
-        table_users = CreateTable(conn=conn_hackernews, table_name=TABLE_NAME_USERS)
+        table_items = TableCreator(conn=conn_hackernews, table_name=TABLE_NAME_ITEMS)
+        table_users = TableCreator(conn=conn_hackernews, table_name=TABLE_NAME_USERS)
+        table_texts = TableCreator(conn=conn_hackernews, table_name=TABLE_NAME_TEXTS)
 
-        tables = [table_items, table_users]
+        tables = [table_items, table_users, table_texts]
 
         logging.info("creating all tables")
         for table in tables:

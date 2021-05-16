@@ -1,10 +1,8 @@
 import argparse
-import zipfile
 
 from src.db.connection import DBConnection
 from src.db.constants import *
 from src.db.utils import get_column_values, get_value_count_in_column
-from src.models.word2vec import Word2VecTrainer
 from src.preprocessing.pipeline import TextPreprocessor
 
 parser = argparse.ArgumentParser()
