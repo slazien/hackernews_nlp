@@ -4,6 +4,7 @@ from math import ceil
 from time import time
 
 import luigi
+from psycopg2 import sql
 
 from src.db.connection import DBConnection
 from src.db.constants import *
@@ -50,28 +51,48 @@ def main():
     setup = Setup()
     setup.run()
     logging.info("finished setting up database")
+    conn = DBConnection("postgres", DB_PASSWORD, DB_NAME_HACKERNEWS)
+
+    # Check which (if any) IDs exist in the DB already
+    cursor = conn.get_cursor()
+
+    desired_ids = set(list(range(args.startid, args.endid + 1)))
+
+    query = "SELECT DISTINCT {} FROM {};"
+    query_sql = sql.SQL(query).format(
+        sql.Identifier(PRIMARY_KEY_NAME_ITEMS), sql.Identifier(TABLE_NAME_ITEMS)
+    )
+    cursor.execute(query_sql)
+
+    res = cursor.fetchall()
+
+    if len(res) == 0:
+        ids_in_db = set()
+    else:
+        ids_in_db = set([row[0] for row in res])
+
+    item_ids_to_download = desired_ids - ids_in_db
+
+    # If no items to download
+    if len(item_ids_to_download) == 0:
+        exit(0)
 
     # Split item id list into chunks for each worker
-    chunk_size_items = int(ceil((args.endid - args.startid) / args.workers))
+    chunk_size_items = int(ceil(len(item_ids_to_download) / args.workers))
 
-    ranges_items = [
-        (sublist[0], sublist[-1])
-        for sublist in chunk_for_size(
-            list(range(args.startid, args.endid)), chunk_size_items
-        )
-    ]
+    item_ids_to_download_chunks = chunk_for_size(
+        list(item_ids_to_download), chunk_size_items
+    )
 
-    num_workers = len(ranges_items)
+    logging.info("item ranges for jobs: {}".format(item_ids_to_download_chunks))
 
-    logging.info("item ranges for jobs: {}".format(ranges_items))
-
-    # For each range, create a new Luigi task
+    # For each chunk, create a new Luigi task
     task_list = []
+    num_workers = 0
 
-    for range_ids in ranges_items:
-        start_id = range_ids[0]
-        end_id = range_ids[1]
-        task_list.append(TaskDownloadItems(start_id=start_id, end_id=end_id))
+    for chunk in item_ids_to_download_chunks:
+        task_list.append(TaskDownloadItems(ids_to_download=chunk))
+        num_workers += 1
 
     conn = DBConnection("postgres", DB_PASSWORD, DB_NAME_HACKERNEWS)
     user_getter = UserGetter(conn, TABLE_NAME_USERS, PRIMARY_KEY_NAME_USERS)

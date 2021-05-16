@@ -15,8 +15,7 @@ from src.db.inserters import ItemInserter
 
 
 class TaskDownloadItems(luigi.Task):
-    start_id = luigi.IntParameter()
-    end_id = luigi.IntParameter()
+    ids_to_download = luigi.ListParameter()
 
     def run(self):
         """
@@ -30,7 +29,7 @@ class TaskDownloadItems(luigi.Task):
         item_api = ItemAPI()
         item_inserter = ItemInserter(conn, TABLE_NAME_ITEMS, PRIMARY_KEY_NAME_ITEMS)
 
-        for item_id in tqdm(range(self.start_id, self.end_id)):
+        for item_id in tqdm(self.ids_to_download):
             current_item = item_api.get_item(item_id=item_id)
             if current_item is not None:
                 item_inserter.insert_item(current_item)
