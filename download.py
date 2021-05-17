@@ -71,7 +71,7 @@ def main():
     else:
         ids_in_db = set([row[0] for row in res])
 
-    item_ids_to_download = desired_ids - ids_in_db
+    item_ids_to_download = sorted(list(desired_ids - ids_in_db))
 
     # If no items to download
     if len(item_ids_to_download) == 0:
@@ -80,9 +80,7 @@ def main():
     # Split item id list into chunks for each worker
     chunk_size_items = int(ceil(len(item_ids_to_download) / args.workers))
 
-    item_ids_to_download_chunks = chunk_for_size(
-        list(item_ids_to_download), chunk_size_items
-    )
+    item_ids_to_download_chunks = chunk_for_size(item_ids_to_download, chunk_size_items)
 
     logging.info("item ranges for jobs: {}".format(item_ids_to_download_chunks))
 
@@ -94,6 +92,7 @@ def main():
         task_list.append(TaskDownloadItems(ids_to_download=chunk))
         num_workers += 1
 
+    # Get all user IDs currently in the "items" table
     conn = DBConnection("postgres", DB_PASSWORD, DB_NAME_HACKERNEWS)
     user_getter = UserGetter(conn, TABLE_NAME_USERS, PRIMARY_KEY_NAME_USERS)
     user_ids_all = user_getter.get_all_user_ids()
