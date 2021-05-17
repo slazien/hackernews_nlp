@@ -73,9 +73,9 @@ def is_value_exists(
     res = cursor.fetchall()[0][0]
 
     if res:
-        logging.info("value {} exists, skipping".format(value))
+        logging.info("check: value {} exists".format(value))
     else:
-        logging.info("value {} does not exist, inserting".format(value))
+        logging.info("check: value {} does not exist".format(value))
 
     return res
 

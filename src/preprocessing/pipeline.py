@@ -5,6 +5,7 @@ from typing import Iterable, Optional
 from tqdm import tqdm
 
 from src.preprocessing.text import *
+from src.utils.text import is_string_empty
 
 NUM_CORES = cpu_count() - 1 or 1
 
@@ -19,8 +20,9 @@ class TextPreprocessor:
         :param text: string to process
         :return: processed string, None if supplied or output string is None or if returned text would be empty
         """
-        if text is None:
+        if is_string_empty(text):
             return None
+
         text = strip_html(text)
         text = remove_stopwords(text)
         text = transform_accented_chars(text)
@@ -30,7 +32,7 @@ class TextPreprocessor:
         text = re.sub(" +", " ", text)
         text = text.strip()
 
-        if text is None or text == "":
+        if is_string_empty(text):
             return None
 
         return text
@@ -76,7 +78,7 @@ class TextPreprocessor:
 
                         # Save processed texts to a file, with each text in a new line
                         for text in text_processed_batch:
-                            if text is not None:
+                            if not is_string_empty(text):
                                 f.write(text + "\n")
 
                             num_processed += 1
