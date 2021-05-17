@@ -1,14 +1,10 @@
 import logging
+from typing import NamedTuple
 
 from psycopg2 import sql
 
 from src.db.connection import DBConnection
-from src.db.constants import (
-    PRIMARY_KEY_NAME_ITEMS,
-    PRIMARY_KEY_NAME_USERS,
-    TABLE_NAME_ITEMS,
-    TABLE_NAME_USERS,
-)
+from src.db.constants import *
 from src.db.utils import is_value_exists
 from src.entities.item import Item
 from src.entities.text import Text
@@ -142,26 +138,44 @@ class TextInserter:
         self.table_name = table_name
         self.primary_key_name = primary_key_name
 
-    def insert_text(self, text: Text) -> bool:
+    def insert_text(self, text: Text):
         """
-        Insert a User object into the DB if it doesn't exist, skip otherwise
+        Insert a Text object into the DB if it doesn't exist, skip otherwise
         :param text: text to insert
-        :return: True if text was inserted, False otherwise
+        :return:
         """
         logging.info("inserting text: {}".format(text))
 
         id_item = text.get_id_item()
         text_str = text.get_text()
 
-        query = "INSERT INTO {} (id_item, text) VALUES (%s, %s);"
-        query_sql = sql.SQL(query).format(id_item, text_str)
+        query = """
+        INSERT INTO {} (id_item, text) VALUES (%s, %s)
+        ON CONFLICT (id_item) DO UPDATE SET text = %s;
+        """
+        query_sql = sql.SQL(query).format(sql.Identifier(self.table_name))
 
-        if not is_value_exists(
-            self.conn_obj, self.table_name, self.primary_key_name, id_item
-        ):
-            self.cursor.execute(query_sql, (id_item, text_str))
-            logging.info("text inserted: {}".format(text_str))
-            return True
-        else:
-            logging.info("text already exists: {}".format(text))
-            return False
+        self.cursor.execute(query_sql, (id_item, text_str, text_str))
+
+    def insert_sentiment(self, sentiment: NamedTuple, item_id: int):
+        """
+        Inserts a NamedTuple containing (polarity, subjectivity) scores for a given item_id
+        :param sentiment: a NamedTuple containing subjectivity and polarity scores in float
+        :param item_id: ID of the item to insert sentiment for
+        :return:
+        """
+        logging.info(
+            "inserting sentiment: {} for item id: {}".format(sentiment, item_id)
+        )
+
+        query = """
+        INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s) 
+        ON CONFLICT (id_item) DO UPDATE SET polarity = %s, subjectivity = %s;
+        """
+        query_sql = sql.SQL(query).format(sql.Identifier(TABLE_NAME_TEXTS))
+
+        polarity = sentiment[0] if sentiment is not None else None
+        subjectivity = sentiment[1] if sentiment is not None else None
+        self.cursor.execute(
+            query_sql, (item_id, polarity, subjectivity, polarity, subjectivity)
+        )

@@ -1,6 +1,8 @@
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from textblob import TextBlob
+
+from src.utils.text import is_string_empty
 
 
 class SentimentClassifier:
@@ -12,28 +14,37 @@ class SentimentClassifier:
         pass
 
     @staticmethod
-    def get_polarity(text: str) -> float:
+    def get_polarity(text: str) -> Optional[float]:
         """
         Returns the polarity of the input text
         :param text: string containing text to analyze
-        :return: a float [-1, 1] indicating the polarity of the supplied text
+        :return: a float [-1, 1] indicating the polarity of the supplied text if nonempty, else None
         """
-        return TextBlob(text).polarity
+        if is_string_empty(text):
+            return None
+        else:
+            return TextBlob(text).polarity
 
     @staticmethod
-    def get_subjectivity(text: str) -> float:
+    def get_subjectivity(text: str) -> Optional[float]:
         """
         Returns the subjectivity of the input text
         :param text: string containing text to analyze
-        :return: a float [0 ,1] indicating the subjectivity of the supplied text
+        :return: a float [0 ,1] indicating the subjectivity of the supplied text if nonempty else None
         """
-        return TextBlob(text).subjectivity
+        if is_string_empty(text):
+            return None
+        else:
+            return TextBlob(text).subjectivity
 
     @staticmethod
-    def get_sentiment(text: str) -> NamedTuple:
+    def get_sentiment(text: str) -> Optional[NamedTuple]:
         """
         Returns a named tuple Sentiment containing polarity and subjectivity of the input text
         :param text: string containing text to analyze
-        :return: a named tuple Sentiment
+        :return: if input text non-empty, a named tuple Sentiment, None otherwise
         """
-        return TextBlob(text).sentiment
+        if is_string_empty(text):
+            return None
+        else:
+            return TextBlob(text).sentiment

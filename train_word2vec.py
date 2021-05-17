@@ -1,5 +1,7 @@
 import argparse
+import logging
 import os.path
+from time import time
 
 from src.models.word2vec import Word2VecTrainer
 from src.utils.file import Word2VecIterator
@@ -26,7 +28,24 @@ parser.add_argument("--workers", help="Number of cores to use for training", typ
 parser.add_argument(
     "--negative", help="Number of noise words to use for negative sampling", type=int
 )
+parser.add_argument(
+    "--logging-enabled",
+    help="whether to enable logging for this script [Y/N]",
+    type=str,
+)
 args = parser.parse_args()
+
+LOG_FILENAME = "logs/train_word2vec_{}.log".format(str(int(time())))
+
+# DISABLE LOGGING?
+if args.logging_enabled.lower() != "y":
+    logging.disable(level=logging.CRITICAL)
+else:
+    logging.basicConfig(
+        filename=LOG_FILENAME,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        level=logging.DEBUG,
+    )
 
 
 def main():

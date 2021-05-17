@@ -1,4 +1,6 @@
 import argparse
+import logging
+from time import time
 
 from src.db.connection import DBConnection
 from src.db.constants import *
@@ -14,7 +16,24 @@ parser.add_argument(
     help="size of batch to use for parallel processing of texts",
     type=int,
 )
+parser.add_argument(
+    "--logging-enabled",
+    help="whether to enable logging for this script [Y/N]",
+    type=str,
+)
 args = parser.parse_args()
+
+LOG_FILENAME = "logs/preprocess_text_{}.log".format(str(int(time())))
+
+# DISABLE LOGGING?
+if args.logging_enabled.lower() != "y":
+    logging.disable(level=logging.CRITICAL)
+else:
+    logging.basicConfig(
+        filename=LOG_FILENAME,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        level=logging.DEBUG,
+    )
 
 
 def main():

@@ -15,7 +15,7 @@ from src.tasks.download_users import TaskDownloadUsers
 from src.utils.list import chunk_for_size
 
 # Use the current epoch time as log file name
-LOG_FILENAME = "logs/{}.log".format(str(int(time())))
+LOG_FILENAME = "logs/download_{}.log".format(str(int(time())))
 parser = argparse.ArgumentParser()
 parser.add_argument("--startid", help="id of the first item to download", type=int)
 parser.add_argument("--endid", help="id of the last item to download", type=int)
@@ -26,13 +26,19 @@ parser.add_argument(
 )
 parser.add_argument("--workers", help="number of workers to run the job", type=int)
 parser.add_argument(
-    "--loggingenabled", help="[Y/N] Should logging be enabled?", type=str
+    "--logging-enabled", help="[Y/N] Should logging be enabled?", type=str
 )
 args = parser.parse_args()
 
 # DISABLE LOGGING?
-if args.loggingenabled.lower() != "y":
+if args.logging_enabled.lower() != "y":
     logging.disable(level=logging.CRITICAL)
+else:
+    logging.basicConfig(
+        filename=LOG_FILENAME,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        level=logging.INFO,
+    )
 
 
 def main():
@@ -40,11 +46,6 @@ def main():
     Set up the DB and tables, download items for a given item ID range, insert them into the DB
     :return:
     """
-    logging.basicConfig(
-        filename=LOG_FILENAME,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        level=logging.DEBUG,
-    )
 
     # Set up DB
     logging.info("setting up database")
