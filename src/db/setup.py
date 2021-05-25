@@ -1,7 +1,15 @@
 import logging
 
 from src.db.connection import DBConnection
-from src.db.constants import *
+from src.db.constants import (
+    DB_NAME_HACKERNEWS,
+    DB_NAME_INITIAL,
+    DB_PASSWORD,
+    TABLE_NAME_ITEMS,
+    TABLE_NAME_TEXTS,
+    TABLE_NAME_USERS,
+    TABLES,
+)
 from src.db.create_db import DBCreator
 from src.db.create_tables import TableCreator
 
@@ -38,8 +46,8 @@ class Setup:
             query_create_index = TABLES[table_name]["QUERY_CREATE_INDEX"]
             was_created = table.create_table(query_create_table, query_create_index)
             if was_created:
-                logging.info("table created: {}".format(table.get_name()))
+                logging.info("table created: %s", table.get_name())
             else:
-                logging.info("table not created: {}".format(table.get_name()))
+                logging.info("table not created: %s", table.get_name())
 
         conn_hackernews.close_conn()

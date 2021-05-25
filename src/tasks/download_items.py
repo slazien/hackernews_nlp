@@ -22,7 +22,7 @@ class TaskDownloadItems(luigi.Task):
         Run the download task using Luigi for a given range of item IDs
         :return:
         """
-        logging.info("starting luigi task: {}".format(self.__class__))
+        logging.info("starting luigi task: %s", self.__class__)
         conn = DBConnection(
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
         )
@@ -34,4 +34,4 @@ class TaskDownloadItems(luigi.Task):
             if current_item is not None:
                 item_inserter.insert_item(current_item)
 
-        logging.info("finished task: {}".format(self.__class__))
+        logging.info("finished task: %s", self.__class__)

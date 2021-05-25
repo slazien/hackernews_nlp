@@ -13,7 +13,7 @@ def is_table_exists(conn: DBConnection, table_name: str) -> bool:
     :param table_name: name of the table to check
     :return: True if table exists, False otherwise
     """
-    logging.info("checking if table {} exists".format(table_name))
+    logging.info("checking if table %s exists", table_name)
     try:
         cursor = conn.get_cursor()
         query = sql.SQL(
@@ -33,14 +33,14 @@ def is_table_exists(conn: DBConnection, table_name: str) -> bool:
 
         # table exists
         if res[0][0]:
-            logging.info("table {} exists, skipping".format(table_name))
+            logging.info("table %s exists, skipping", table_name)
         else:
-            logging.info("table {} does not exist, creating".format(table_name))
+            logging.info("table %s does not exist, creating", table_name)
 
         return res[0][0]
 
     except Exception as e:
-        logging.error("exception: {]".format(e))
+        logging.error("exception: %s", e)
         raise Exception("Exception: {}".format(e))
 
 
@@ -56,9 +56,10 @@ def is_value_exists(
     :return: True if the value exists, False otherwise
     """
     logging.info(
-        "checking if value {} exists in column {} in table {}".format(
-            value, column_name, table_name
-        )
+        "checking if value %s exists in column %s in table %s",
+        value,
+        column_name,
+        table_name,
     )
 
     query_exists = sql.SQL(
@@ -73,9 +74,9 @@ def is_value_exists(
     res = cursor.fetchall()[0][0]
 
     if res:
-        logging.info("check: value {} exists".format(value))
+        logging.info("check: value %s exists", value)
     else:
-        logging.info("check: value {} does not exist".format(value))
+        logging.info("check: value %s does not exist", value)
 
     return res
 
@@ -92,9 +93,11 @@ def all_values_exist(
     :return: True if all values exist, False otherwise
     """
     logging.info(
-        "checking if range of values [{}, {}] exists in column {} in table {}".format(
-            min(values), max(values), column_name, table_name
-        )
+        "checking if range of values [%s, %s] exists in column %s in table %s",
+        min(values),
+        max(values),
+        column_name,
+        table_name,
     )
 
     query = "SELECT COUNT({column}) FROM {table} WHERE {column} IN %s;"
@@ -111,6 +114,7 @@ def all_values_exist(
     return res == len(values)
 
 
+# TODO: modify to pass arbitrary number of column names
 def get_column_values(
     conn: DBConnection,
     table_name: str,
@@ -127,10 +131,10 @@ def get_column_values(
     :param fetch_size: number of rows to fetch in one batch
     :return: generator of values (if any) in the column
     """
-    logging.info("getting all values for column: {}".format(column_name))
+    logging.info("getting all values for column: %s", column_name)
 
     cursor = conn.get_named_cursor("cursor_get_column_values")
-    cursor.itersize = 10000
+    cursor.itersize = fetch_size
 
     if limit:
         query = "SELECT {column} FROM {table} LIMIT %s;"
@@ -161,7 +165,7 @@ def get_value_count_in_column(
     :return: count of values
     """
     logging.info(
-        "getting value count in column: {}, table: {}".format(column_name, table_name)
+        "getting value count in column: %s, table: %s", column_name, table_name
     )
 
     query = "SELECT COUNT({column}) FROM {table}"

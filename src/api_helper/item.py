@@ -1,3 +1,7 @@
+"""
+A module providing convenience methods for using HN's Item API
+"""
+
 import logging
 from collections import deque
 from typing import List, Optional
@@ -15,16 +19,20 @@ RATE_LIMIT_DEFAULT = 100000
 
 
 class ItemAPI:
+    """
+    A convenience class for interacting with HN's API for getting Items
+    """
+
     def __init__(self):
-        self.URL = "https://hacker-news.firebaseio.com/v0/item/"
+        self.url = "https://hacker-news.firebaseio.com/v0/item/"
 
     def create_url(self, item_id: int) -> str:
         """
-        Create a URL for calling HN API based on provided item ID
-        :param item_id: ID of the item to create the URL for
-        :return: URL to the item
+        Create a url for calling HN API based on provided item ID
+        :param item_id: ID of the item to create the url for
+        :return: url to the item
         """
-        return self.URL + str(item_id) + ".json"
+        return self.url + str(item_id) + ".json"
 
     # Hard rate limit, no exponential backoff
     @sleep_and_retry
@@ -36,21 +44,21 @@ class ItemAPI:
         :return: an object of class Item (or None if an item does not exist)
         """
         url = self.create_url(item_id=item_id)
-        logging.info("making GET request: {}".format(url))
+        logging.info("making GET request: %s", url)
         res = get(url=url)
 
         if res.status_code != 200:
             logging.warning(
-                "GET request failed: {}, id_item: {}".format(res.status_code, item_id)
+                "GET request failed: %s, id_item: %s", res.status_code, item_id
             )
             # raise Exception(
             #     "API response: {}. Item id: {}".format(res.status_code, id_item)
             # )
             return None
-        else:
-            logging.info("GET request succeeded for id_item: {}".format(item_id))
-            item = Item().from_api_call(res.json())
-            return item
+
+        logging.info("GET request succeeded for id_item: %s", item_id)
+        item = Item().from_api_call(res.json())
+        return item
 
     def get_item_batch(self, item_ids: List[int]) -> List[Optional[Item]]:
         """
@@ -77,29 +85,30 @@ class ItemAPI:
             for kid_id in item.get_kids_ids():
                 item_kid_list.append(self.get_item(kid_id))
             return item_kid_list
-        else:
-            return None
 
+        return None
+
+    @staticmethod
     @sleep_and_retry
     @limits(calls=RATE_LIMIT_DEFAULT, period=MINUTE)
-    def get_maxitem_id(self) -> Optional[int]:
+    def get_maxitem_id() -> Optional[int]:
         """
         Get the ID of the latest item
         :return: Id of the latest item
         """
         url = "https://hacker-news.firebaseio.com/v0/maxitem.json"
-        logging.info("making GET request: {}".format(url))
+        logging.info("making GET request: %s", url)
         res = get(url=url)
 
         if res.status_code != 200:
-            logging.error("GET request failed: {}".format(res.status_code))
+            logging.error("GET request failed: %s", res.status_code)
             # raise Exception("API response: {}".format(res.status_code))
             return None
-        else:
-            max_item_id = res.json()
-            logging.info("GET request succeeded, max_id: {}".format(max_item_id))
 
-            return max_item_id
+        max_item_id = res.json()
+        logging.info("GET request succeeded, max_id: %s", max_item_id)
+
+        return max_item_id
 
     def get_root_item(self, item_id: int) -> Optional[Item]:
         """
@@ -107,7 +116,7 @@ class ItemAPI:
         :param item_id: item ID to get the root item ID for
         :return: root item (object of type Item or None if the item doesn't exist)
         """
-        logging.info("getting root item for id_item: {}".format(item_id))
+        logging.info("getting root item for id_item: %s", item_id)
         item_cache = []
 
         # Get initial item
@@ -120,12 +129,12 @@ class ItemAPI:
 
         if len(item_cache) > 0:
             logging.info(
-                "got root item for id_item: {}, id: {}".format(item_id, item_cache[-1])
+                "got root item for id_item: %s, id: %s", item_id, item_cache[-1]
             )
             return item_cache[-1]
-        else:
-            logging.warning("found no root item for id_item: {}".format(item_id))
-            return None
+
+        logging.warning("found no root item for id_item: %s", item_id)
+        return None
 
     def build_tree_for_root_item(self, item: Item) -> Tree:
         """
@@ -134,7 +143,7 @@ class ItemAPI:
         :return: an object of type Tree containing the root item and all of its children
         """
         item_id = item.get_id()
-        logging.info("creating tree for root id_item: {}".format(item_id))
+        logging.info("creating tree for root id_item: %s", item_id)
         tree = Tree()
         stack = deque([])
 
@@ -182,5 +191,5 @@ class ItemAPI:
             if flag == 0:
                 stack.pop()
 
-        logging.info("finished creating tree for id_item: {}".format(item_id))
+        logging.info("finished creating tree for id_item: %s", item_id)
         return tree

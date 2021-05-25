@@ -55,7 +55,7 @@ class ItemGetter:
         :param item_id: ID of the item to get
         :return: Item object if exists, None otherwise
         """
-        logging.info("getting item with id: {}".format(item_id))
+        logging.info("getting item with id: %s", item_id)
 
         if self._is_item_exists(item_id):
             query = "SELECT * FROM {table} WHERE {column} = %s;"
@@ -66,9 +66,9 @@ class ItemGetter:
             self.cursor.execute(query_sql, item_id)
 
             return Item().from_db_call(self.cursor.fetchall())
-        else:
-            logging.info("item with id: {} does not exist".format(item_id))
-            return None
+
+        logging.info("item with id: %s does not exist", item_id)
+        return None
 
     def get_item_range(
         self, item_id_start: int, item_id_end: int
@@ -80,9 +80,7 @@ class ItemGetter:
         :return: a list of Item objects, None if not all items exist
         """
         logging.info(
-            "getting items with ids in range: [{}, {}]".format(
-                item_id_start, item_id_end
-            )
+            "getting items with ids in range: [%s, %s]", item_id_start, item_id_end
         )
 
         id_range = tuple(list(range(item_id_start, item_id_end + 1)))
@@ -97,8 +95,8 @@ class ItemGetter:
             res = self.cursor.fetchall()
 
             return [Item().from_tuple(item) for item in res]
-        else:
-            return None
+
+        return None
 
 
 class UserGetter:
@@ -140,7 +138,7 @@ class UserGetter:
         :param user_id: ID of the user to get
         :return: User object if exists, None otherwise
         """
-        logging.info("getting user with id: {}".format(user_id))
+        logging.info("getting user with id: %s", user_id)
 
         if self._is_user_exists(user_id):
             query = "SELECT * FROM {table} WHERE {column} = %s;"
@@ -152,9 +150,9 @@ class UserGetter:
             user = User().from_db_call(self.cursor.fetchall())
 
             return user
-        else:
-            logging.info("user with id: {} does not exist".format(user_id))
-            return None
+
+        logging.info("user with id: %s does not exist", user_id)
+        return None
 
     def get_all_user_ids(self) -> Optional[List[str]]:
         """

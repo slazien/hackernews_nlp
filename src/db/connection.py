@@ -5,9 +5,7 @@ import psycopg2
 
 class DBConnection:
     def __init__(self, user: str, password: str, db_name: str):
-        logging.info(
-            "creating db connection for user: {}, db_name: {}".format(user, db_name)
-        )
+        logging.info("creating db connection for user: %s, db_name: %s", user, db_name)
         self.conn = psycopg2.connect(
             database=db_name,
             user=user,

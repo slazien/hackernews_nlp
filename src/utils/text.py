@@ -5,7 +5,4 @@ def is_string_empty(text: str) -> bool:
     :return: True if text is empty, False otherwise
     """
 
-    if text == "" or text is None:
-        return True
-    else:
-        return False
+    return bool(text == "" or text is None)

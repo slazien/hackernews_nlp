@@ -4,7 +4,12 @@ import luigi
 from tqdm import tqdm
 
 from src.db.connection import DBConnection
-from src.db.constants import *
+from src.db.constants import (
+    DB_NAME_HACKERNEWS,
+    DB_PASSWORD,
+    PRIMARY_KEY_NAME_TEXTS,
+    TABLE_NAME_TEXTS,
+)
 from src.db.inserters import TextInserter
 from src.entities.text import Text
 from src.models.sentiment_analysis import SentimentClassifier
@@ -20,7 +25,7 @@ class TaskComputeInsertSentiment(luigi.Task):
         Compute and insert sentiment scores (polarity, subjectivity) into DB for all existing items
         :return:
         """
-        logging.info("starting luigi task: {}".format(self.__class__))
+        logging.info("starting luigi task: %s", self.__class__)
         conn = DBConnection(
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
         )
@@ -59,4 +64,4 @@ class TaskComputeInsertSentiment(luigi.Task):
                 sentiment = sentiment_classifier.get_sentiment(raw_text)
                 text_inserter.insert_sentiment(sentiment, item_id)
 
-        logging.info("finished task: {}".format(self.__class__))
+        logging.info("finished task: %s", self.__class__)

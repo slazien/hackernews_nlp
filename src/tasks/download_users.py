@@ -23,7 +23,7 @@ class TaskDownloadUsers(luigi.Task):
         Run the download task using Luigi for all user IDs currently present in the "items" table
         :return:
         """
-        logging.info("starting luigi task: {}".format(self.__class__))
+        logging.info("starting luigi task: %s", self.__class__)
         conn = DBConnection(
             user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
         )
@@ -41,4 +41,4 @@ class TaskDownloadUsers(luigi.Task):
             if current_user is not None:
                 user_inserter.insert_user(current_user)
 
-        logging.info("finished task: {}".format(self.__class__))
+        logging.info("finished task: %s", self.__class__)
