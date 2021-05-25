@@ -17,7 +17,7 @@ class DBCreator:
         Create an empty PostgreSQL DB
         :return:
         """
-        logging.info("creating db with db_name: {}".format(self.db_name))
+        logging.info("creating db with db_name: %s", self.db_name)
         self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.conn.autocommit = True
 
@@ -27,12 +27,12 @@ class DBCreator:
         dbs = self.cursor.fetchall()
 
         if (self.db_name,) not in dbs:
-            logging.info("db does not exist: {}".format(self.db_name))
+            logging.info("db does not exist: %s", self.db_name)
             self.cursor.execute(
                 sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_name))
             )
         else:
-            logging.info("db exists: {}".format(self.db_name))
+            logging.info("db exists: %s", self.db_name)
 
         self.cursor.close()
         self.conn.close()

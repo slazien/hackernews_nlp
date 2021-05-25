@@ -37,9 +37,8 @@ else:
 
 
 def main():
-    # Get all texts from DB
+    # Get all texts from DB as a generator
     conn = DBConnection("postgres", DB_PASSWORD, DB_NAME_HACKERNEWS)
-
     text_generator = get_column_values(
         conn, TABLE_NAME_ITEMS, TABLE_ITEMS["COLUMN_NAME_TEXT"]
     )
@@ -47,8 +46,8 @@ def main():
         conn, TABLE_NAME_ITEMS, TABLE_ITEMS["COLUMN_NAME_TEXT"]
     )
 
+    # Process all texts
     text_preprocessor = TextPreprocessor()
-
     text_preprocessor.process_multiprocessing(
         text_generator, args.filename, total_text_count, args.batchsize
     )

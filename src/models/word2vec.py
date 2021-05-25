@@ -77,7 +77,7 @@ class Word2VecTrainer:
             raise Exception("Word2Vec model not trained, cannot save")
 
         self.model.save(path)
-        logging.info("Word2Vec model saved to: {}".format(path))
+        logging.info("Word2Vec model saved to: %s", path)
 
     @staticmethod
     def load(path: str) -> object:
@@ -87,5 +87,5 @@ class Word2VecTrainer:
         :return: object containing word <-> embedding mapping
         """
 
-        logging.info("loading Word2Vec model from: {}".format(path))
+        logging.info("loading Word2Vec model from: %s", path)
         return Word2Vec.load(path)

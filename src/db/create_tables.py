@@ -29,7 +29,7 @@ class TableCreator:
         :param query_index: optional SQL query to create an index on a column
         :return: True if a table was created, False otherwise
         """
-        logging.info("creating table: {}".format(self.table_name))
+        logging.info("creating table: %s", self.table_name)
         query_table = sql.SQL(query)
 
         if not is_table_exists(self.conn_object, self.table_name):
@@ -41,6 +41,6 @@ class TableCreator:
             self.cursor.close()
             self.conn.close()
             return True
-        else:
-            logging.info("table {} already exists, skipping".format(self.table_name))
-            return False
+
+        logging.info("table %s already exists, skipping", self.table_name)
+        return False

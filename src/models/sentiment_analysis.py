@@ -22,8 +22,8 @@ class SentimentClassifier:
         """
         if is_string_empty(text):
             return None
-        else:
-            return TextBlob(text).polarity
+
+        return TextBlob(text).polarity
 
     @staticmethod
     def get_subjectivity(text: str) -> Optional[float]:
@@ -34,8 +34,8 @@ class SentimentClassifier:
         """
         if is_string_empty(text):
             return None
-        else:
-            return TextBlob(text).subjectivity
+
+        return TextBlob(text).subjectivity
 
     @staticmethod
     def get_sentiment(text: str) -> Optional[NamedTuple]:
@@ -46,5 +46,5 @@ class SentimentClassifier:
         """
         if is_string_empty(text):
             return None
-        else:
-            return TextBlob(text).sentiment
+
+        return TextBlob(text).sentiment

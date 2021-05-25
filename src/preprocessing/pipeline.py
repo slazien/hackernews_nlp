@@ -4,7 +4,13 @@ from typing import Iterable, Optional
 
 from tqdm import tqdm
 
-from src.preprocessing.text import *
+from src.preprocessing.text import (
+    lowercase,
+    remove_nonalphanumeric,
+    remove_stopwords,
+    strip_html,
+    transform_accented_chars,
+)
 from src.utils.text import is_string_empty
 
 NUM_CORES = cpu_count() - 1 or 1
@@ -56,12 +62,12 @@ class TextPreprocessor:
         num_processed = 0
 
         with tqdm(total=total_count) as pbar:
-            with open(file_name, "a") as f:
+            with open(file_name, "a") as file:
                 with Pool(NUM_CORES) as pool:
                     while True:
                         # Create a batch of texts as a list for use in pool.imap
                         current_batch = []
-                        for i in range(batch_size):
+                        for _ in range(batch_size):
                             current_batch.append(next(texts))
 
                         # Break the loop if no more texts to process
@@ -79,7 +85,7 @@ class TextPreprocessor:
                         # Save processed texts to a file, with each text in a new line
                         for text in text_processed_batch:
                             if not is_string_empty(text):
-                                f.write(text + "\n")
+                                file.write(text + "\n")
 
                             num_processed += 1
                             pbar.update(num_processed)

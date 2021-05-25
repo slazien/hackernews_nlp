@@ -54,14 +54,12 @@ class User:
         """
         # If there aren't 5 columns
         if len(tup) != 5:
-            logging.warning(
-                "tried creating user from tuple with < 5 columns: {}".format(tup)
-            )
+            logging.warning("tried creating user from tuple with < 5 columns: %s", tup)
             return None
-        else:
-            return User(
-                id=tup[0], created=tup[1], karma=tup[2], about=tup[3], submitted=tup[4]
-            )
+
+        return User(
+            id=tup[0], created=tup[1], karma=tup[2], about=tup[3], submitted=tup[4]
+        )
 
     @staticmethod
     def from_db_call(query_res: List) -> Optional[User]:
@@ -81,8 +79,8 @@ class User:
         """
         if hasattr(self, property_name):
             return getattr(self, property_name)
-        else:
-            return None
+
+        return None
 
     def __repr__(self):
         return (

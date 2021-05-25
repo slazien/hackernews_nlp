@@ -4,7 +4,13 @@ from typing import NamedTuple
 from psycopg2 import sql
 
 from src.db.connection import DBConnection
-from src.db.constants import *
+from src.db.constants import (
+    PRIMARY_KEY_NAME_ITEMS,
+    PRIMARY_KEY_NAME_USERS,
+    TABLE_NAME_ITEMS,
+    TABLE_NAME_TEXTS,
+    TABLE_NAME_USERS,
+)
 from src.db.utils import is_value_exists
 from src.entities.item import Item
 from src.entities.text import Text
@@ -31,20 +37,23 @@ class ItemInserter:
         :param item: Item object to insert
         :return: True if item was inserted, False otherwise
         """
-        logging.info("inserting item: {}".format(item))
-        _id = item.get_property("id")
+        logging.info("inserting item: %s", item)
+        id = item.get_property("id")
         deleted = item.get_property("deleted")
-        _type = item.get_property("type")
+        type = item.get_property("type")
         by = item.get_property("by")
         time = item.get_property("time")
         text = item.get_property("text")
+        text = text.replace("\x00", "") if text is not None else text
         dead = item.get_property("dead")
         parent = item.get_property("parent")
         poll = item.get_property("poll")
         kids = item.get_property("kids")
         url = item.get_property("url")
+        url = url.replace("\x00", "") if url is not None else url
         score = item.get_property("score")
         title = item.get_property("title")
+        title = title.replace("\x00", "") if title is not None else title
         parts = item.get_property("parts")
         descendants = item.get_property("descendants")
 
@@ -58,14 +67,14 @@ class ItemInserter:
 
         # Insert only if id doesn't already exist
         if not is_value_exists(
-            self.conn_obj, self.table_name, self.primary_key_name, _id
+            self.conn_obj, self.table_name, self.primary_key_name, id
         ):
             self.cursor.execute(
                 query_sql,
                 (
-                    _id,
+                    id,
                     deleted,
-                    _type,
+                    type,
                     by,
                     time,
                     text,
@@ -80,11 +89,11 @@ class ItemInserter:
                     descendants,
                 ),
             )
-            logging.info("item inserted: {}".format(item))
+            logging.info("item inserted: %s", item)
             return True
-        else:
-            logging.info("item already exists: {}".format(item))
-            return False
+
+        logging.info("item already exists: %s", item)
+        return False
 
 
 class UserInserter:
@@ -107,11 +116,12 @@ class UserInserter:
         :param user: User object to insert
         :return: True if user was inserted, False otherwise
         """
-        logging.info("inserting user: {}".format(user))
-        _id = user.get_property("id")
+        logging.info("inserting user: %s", user)
+        id = user.get_property("id")
         created = user.get_property("created")
         karma = user.get_property("karma")
         about = user.get_property("about")
+        about = about.replace("\x00", "") if about is not None else about
         submitted = user.get_property("submitted")
 
         query = "INSERT INTO {} (id, created, karma, about, submitted) VALUES (%s, %s, %s, %s, %s);"
@@ -119,14 +129,14 @@ class UserInserter:
         query_sql = sql.SQL(query).format(sql.Identifier(self.table_name))
 
         if not is_value_exists(
-            self.conn_obj, self.table_name, self.primary_key_name, _id
+            self.conn_obj, self.table_name, self.primary_key_name, id
         ):
-            self.cursor.execute(query_sql, (_id, created, karma, about, submitted))
-            logging.info("user inserted: {}".format(user))
+            self.cursor.execute(query_sql, (id, created, karma, about, submitted))
+            logging.info("user inserted: %s", user)
             return True
-        else:
-            logging.info("user already exists: {}".format(user))
-            return False
+
+        logging.info("user already exists: %s", user)
+        return False
 
 
 class TextInserter:
@@ -144,10 +154,11 @@ class TextInserter:
         :param text: text to insert
         :return:
         """
-        logging.info("inserting text: {}".format(text))
+        logging.info("inserting text: %s", text)
 
         id_item = text.get_id_item()
         text_str = text.get_text()
+        text_str = text_str.replace("\x00", "") if text_str is not None else text_str
 
         query = """
         INSERT INTO {} (id_item, text) VALUES (%s, %s)
@@ -164,9 +175,7 @@ class TextInserter:
         :param item_id: ID of the item to insert sentiment for
         :return:
         """
-        logging.info(
-            "inserting sentiment: {} for item id: {}".format(sentiment, item_id)
-        )
+        logging.info("inserting sentiment: %s for item id: %s", sentiment, item_id)
 
         query = """
         INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s) 
