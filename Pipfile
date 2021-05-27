@@ -32,6 +32,8 @@ gensim = "*"
 textblob = "*"
 transformers = "*"
 pylint = "*"
+ipywidgets = "*"
+umap-learn = "*"
 
 [dev-packages]
 black = "*"
