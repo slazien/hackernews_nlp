@@ -57,11 +57,14 @@ def main():
     desired_ids = set(list(range(args.startid, args.endid + 1)))
 
     # Get all distinct IDs (if any) from the DB
-    query = "SELECT DISTINCT {} FROM {};"
+    query = "SELECT DISTINCT {} FROM {} WHERE {} >= %s AND {} < %s;"
     query_sql = sql.SQL(query).format(
-        sql.Identifier(PRIMARY_KEY_NAME_ITEMS), sql.Identifier(TABLE_NAME_ITEMS)
+        sql.Identifier(PRIMARY_KEY_NAME_ITEMS),
+        sql.Identifier(TABLE_NAME_ITEMS),
+        sql.Identifier(PRIMARY_KEY_NAME_ITEMS),
+        sql.Identifier(PRIMARY_KEY_NAME_ITEMS),
     )
-    cursor.execute(query_sql)
+    cursor.execute(query_sql, (min(desired_ids), max(desired_ids)))
     res_ids = cursor.fetchall()
 
     # If no IDs exist in DB
