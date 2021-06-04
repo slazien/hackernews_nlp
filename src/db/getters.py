@@ -5,7 +5,8 @@ from psycopg2 import sql
 
 from src.db.connection import DBConnection
 from src.db.constants import (
-    KEY_NAME_USER_ID_ITEMS,
+    COLUMN_NAME_USER_ID_ITEMS,
+    COLUMN_NAME_USER_ID_USERS,
     PRIMARY_KEY_NAME_ITEMS,
     PRIMARY_KEY_NAME_USERS,
     TABLE_NAME_ITEMS,
@@ -154,17 +155,22 @@ class UserGetter:
         logging.info("user with id: %s does not exist", user_id)
         return None
 
-    def get_all_user_ids(self) -> Optional[List[str]]:
+    def get_all_user_ids(self, table_name: str) -> Optional[List[str]]:
         """
         Get all user IDs existing in the DB
+        :param table_name: name of the table from which to get user IDs
         :return: a list of user IDs (if any)
         """
         logging.info("getting all user ids")
 
         query = "SELECT DISTINCT {column} FROM {table};"
         query_sql = sql.SQL(query).format(
-            column=sql.Identifier(KEY_NAME_USER_ID_ITEMS),
-            table=sql.Identifier(TABLE_NAME_ITEMS),
+            column=sql.Identifier(
+                COLUMN_NAME_USER_ID_ITEMS
+                if table_name == TABLE_NAME_ITEMS
+                else COLUMN_NAME_USER_ID_USERS
+            ),
+            table=sql.Identifier(table_name),
         )
         self.cursor.execute(query_sql)
         res = self.cursor.fetchall()

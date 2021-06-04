@@ -8,6 +8,7 @@ from psycopg2 import sql
 
 from src.db.connection import DBConnection
 from src.db.constants import *
+from src.db.constants import TABLE_NAME_ITEMS, TABLE_NAME_USERS
 from src.db.getters import UserGetter
 from src.db.setup import Setup
 from src.tasks.download_items import TaskDownloadItems
@@ -95,13 +96,22 @@ def main():
     if args.download_users.lower() == "y":
         # Get all user IDs currently in the "items" table
         user_getter = UserGetter(conn, TABLE_NAME_USERS, PRIMARY_KEY_NAME_USERS)
-        user_ids_all = user_getter.get_all_user_ids()
+        user_ids_in_users_table = set(
+            user_getter.get_all_user_ids(table_name=TABLE_NAME_USERS)
+        )
+        user_ids_in_items_table = set(
+            user_getter.get_all_user_ids(table_name=TABLE_NAME_ITEMS)
+        )
+        user_ids_to_download = sorted(
+            list(user_ids_in_items_table - user_ids_in_users_table)
+        )
 
         # Build user ranges to download for each task
-        chunk_size_users = int(len(user_ids_all) / args.workers)
-        ranges_users = chunk_for_size(user_ids_all, chunk_size_users)
-        for range_users in ranges_users:
-            task_list.append(TaskDownloadUsers(user_ids=range_users))
+        chunk_size_users = int(len(user_ids_to_download) / args.workers)
+        if chunk_size_users != 0:
+            ranges_users = chunk_for_size(user_ids_to_download, chunk_size_users)
+            for range_users in ranges_users:
+                task_list.append(TaskDownloadUsers(user_ids=range_users))
 
     luigi.build(
         task_list,
