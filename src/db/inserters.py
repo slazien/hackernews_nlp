@@ -1,5 +1,5 @@
 import logging
-from typing import NamedTuple
+from typing import List, NamedTuple
 
 from psycopg2 import sql
 
@@ -11,7 +11,6 @@ from src.db.constants import (
     TABLE_NAME_TEXTS,
     TABLE_NAME_USERS,
 )
-from src.db.utils import is_value_exists
 from src.entities.item import Item
 from src.entities.text import Text
 from src.entities.user import User
@@ -31,7 +30,7 @@ class ItemInserter:
         self.table_name = table_name
         self.primary_key_name = primary_key_name
 
-    def insert_item(self, item: Item) -> bool:
+    def insert_item(self, item: Item):
         """
         Insert an Item object into the DB if it doesn't exist, skip otherwise
         :param item: Item object to insert
@@ -60,40 +59,61 @@ class ItemInserter:
         query = """
         INSERT INTO {table} 
         (id, deleted, type, by, time, text, dead, parent, poll, kids, url, score, title, parts, descendants)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING;
         """
 
         query_sql = sql.SQL(query).format(table=sql.Identifier(self.table_name))
 
         # Insert only if id doesn't already exist
-        if not is_value_exists(
-            self.conn_obj, self.table_name, self.primary_key_name, id
-        ):
-            self.cursor.execute(
-                query_sql,
-                (
-                    id,
-                    deleted,
-                    type,
-                    by,
-                    time,
-                    text,
-                    dead,
-                    parent,
-                    poll,
-                    kids,
-                    url,
-                    score,
-                    title,
-                    parts,
-                    descendants,
-                ),
-            )
-            logging.info("item inserted: %s", item)
-            return True
+        # if not is_value_exists(
+        #     self.conn_obj, self.table_name, self.primary_key_name, id
+        # ):
+        self.cursor.execute(
+            query_sql,
+            (
+                id,
+                deleted,
+                type,
+                by,
+                time,
+                text,
+                dead,
+                parent,
+                poll,
+                kids,
+                url,
+                score,
+                title,
+                parts,
+                descendants,
+            ),
+        )
+        # logging.info("item inserted: %s", item)
+        # return True
 
-        logging.info("item already exists: %s", item)
-        return False
+        # logging.info("item already exists: %s", item)
+        # return False
+
+    def insert_items_batch(self, item_list: List[Item]):
+        logging.info("inserting item batch")
+        query = """
+                    INSERT INTO {table} 
+                    (id, deleted, type, by, time, text, dead, parent, poll, kids, url, score, title, parts, descendants)
+                    VALUES 
+                    """
+        query_values = ",".join(
+            self.cursor.mogrify(
+                "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                item.to_tuple(),
+            ).decode("utf-8")
+            for item in item_list
+        )
+
+        query = query + query_values + "ON CONFLICT (id) DO NOTHING;"
+
+        query_sql = sql.SQL(query).format(table=sql.Identifier(self.table_name))
+        self.cursor.execute(query_sql)
 
 
 class UserInserter:
@@ -110,7 +130,7 @@ class UserInserter:
         self.table_name = table_name
         self.primary_key_name = primary_key_name
 
-    def insert_user(self, user: User) -> bool:
+    def insert_user(self, user: User):
         """
         Insert a User object into the DB if it doesn't exist, skip otherwise
         :param user: User object to insert
@@ -124,19 +144,22 @@ class UserInserter:
         about = about.replace("\x00", "") if about is not None else about
         submitted = user.get_property("submitted")
 
-        query = "INSERT INTO {} (id, created, karma, about, submitted) VALUES (%s, %s, %s, %s, %s);"
+        query = """
+        INSERT INTO {} (id, created, karma, about, submitted) VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING;
+        """
 
         query_sql = sql.SQL(query).format(sql.Identifier(self.table_name))
 
-        if not is_value_exists(
-            self.conn_obj, self.table_name, self.primary_key_name, id
-        ):
-            self.cursor.execute(query_sql, (id, created, karma, about, submitted))
-            logging.info("user inserted: %s", user)
-            return True
+        # if not is_value_exists(
+        #     self.conn_obj, self.table_name, self.primary_key_name, id
+        # ):
+        self.cursor.execute(query_sql, (id, created, karma, about, submitted))
+        # logging.info("user inserted: %s", user)
+        # return True
 
-        logging.info("user already exists: %s", user)
-        return False
+        # logging.info("user already exists: %s", user)
+        # return False
 
 
 class TextInserter:
@@ -160,13 +183,19 @@ class TextInserter:
         text_str = text.get_text()
         text_str = text_str.replace("\x00", "") if text_str is not None else text_str
 
+        # query = """
+        # INSERT INTO {} (id_item, text) VALUES (%s, %s)
+        # ON CONFLICT (id_item) DO UPDATE SET text = %s;
+        # """
+
         query = """
         INSERT INTO {} (id_item, text) VALUES (%s, %s)
-        ON CONFLICT (id_item) DO UPDATE SET text = %s;
+        ON CONFLICT (id_item) DO NOTHING;
         """
+
         query_sql = sql.SQL(query).format(sql.Identifier(self.table_name))
 
-        self.cursor.execute(query_sql, (id_item, text_str, text_str))
+        self.cursor.execute(query_sql, (id_item, text_str))
 
     def insert_sentiment(self, sentiment: NamedTuple, item_id: int):
         """
@@ -177,14 +206,18 @@ class TextInserter:
         """
         logging.info("inserting sentiment: %s for item id: %s", sentiment, item_id)
 
+        # query = """
+        # INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s)
+        # ON CONFLICT (id_item) DO UPDATE SET polarity = %s, subjectivity = %s;
+        # """
+
         query = """
-        INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s) 
-        ON CONFLICT (id_item) DO UPDATE SET polarity = %s, subjectivity = %s;
-        """
+                INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s) 
+                ON CONFLICT (id_item) DO NOTHING;
+                """
+
         query_sql = sql.SQL(query).format(sql.Identifier(TABLE_NAME_TEXTS))
 
         polarity = sentiment[0] if sentiment is not None else None
         subjectivity = sentiment[1] if sentiment is not None else None
-        self.cursor.execute(
-            query_sql, (item_id, polarity, subjectivity, polarity, subjectivity)
-        )
+        self.cursor.execute(query_sql, (item_id, polarity, subjectivity))

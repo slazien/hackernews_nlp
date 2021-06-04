@@ -234,3 +234,27 @@ class Item:
                 self.descendants,
             )
         )
+
+    def to_tuple(self) -> tuple:
+        """
+        Returns a tuple representation of the Item
+        :return: a tuple containing the class fields
+        """
+
+        return (
+            self.id,
+            self.deleted,
+            self.type,
+            self.by,
+            self.time,
+            self.text,
+            self.dead,
+            self.parent,
+            self.poll,
+            self.kids,
+            self.url,
+            self.score,
+            self.title,
+            self.parts,
+            self.descendants,
+        )

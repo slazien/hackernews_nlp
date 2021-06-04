@@ -32,11 +32,11 @@ class TaskDownloadUsers(luigi.Task):
         user_inserter = UserInserter(conn, TABLE_NAME_USERS, PRIMARY_KEY_NAME_USERS)
         user_api = UserAPI()
 
-        user_ids_intersection = set(user_getter.get_all_user_ids()).intersection(
-            self.user_ids
-        )
+        # user_ids_intersection = set(user_getter.get_all_user_ids(table_name=TAB)).intersection(
+        #     self.user_ids
+        # )
 
-        for user_id in tqdm(user_ids_intersection):
+        for user_id in tqdm(self.user_ids):
             current_user = user_api.get_user(user_id=user_id)
             if current_user is not None:
                 user_inserter.insert_user(current_user)
