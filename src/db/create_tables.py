@@ -17,8 +17,8 @@ class TableCreator:
 
     def get_name(self) -> str:
         """
-        Get table's name
-        :return: string with table's name
+        Get table's cursor_name
+        :return: string with table's cursor_name
         """
         return self.table_name
 

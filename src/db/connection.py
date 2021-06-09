@@ -42,7 +42,7 @@ class DBConnection:
         """
         Return a named cursor ("server side cursor") which can transfer only a certain amount of data. Useful for
         creating a "generator-like" cursor
-        :param name: name of the cursor
+        :param name: cursor_name of the cursor
         :return: named cursor
         """
         return self.conn.cursor(name=name)

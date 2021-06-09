@@ -12,7 +12,7 @@ parser.add_argument(
     "--filename", help="path to the file in which to save preprocessed texts", type=str
 )
 parser.add_argument(
-    "--batchsize",
+    "--batch-size",
     help="size of batch to use for parallel processing of texts",
     type=int,
 )
@@ -49,7 +49,7 @@ def main():
     # Process all texts
     text_preprocessor = TextPreprocessor()
     text_preprocessor.process_multiprocessing(
-        text_generator, args.filename, total_text_count, args.batchsize
+        text_generator, args.filename, total_text_count, args.batch_size
     )
 
 

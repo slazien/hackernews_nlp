@@ -155,7 +155,7 @@ class Item:
     def get_property(self, property_name: str) -> Optional[Any]:
         """
         Get the value of a given Item's property
-        :param property_name: name of the property to get the value of
+        :param property_name: cursor_name of the property to get the value of
         :return: property value if exists, None otherwise
         """
         if hasattr(self, property_name):
