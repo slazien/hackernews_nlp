@@ -2,9 +2,15 @@ import argparse
 import logging
 from time import time
 
+from psycopg2 import sql
+
 from src.db.connection import DBConnection
-from src.db.constants import DB_NAME_HACKERNEWS, DB_PASSWORD, TABLE_NAME_ITEMS
-from src.db.utils import get_column_values
+from src.db.constants import (
+    DB_NAME_HACKERNEWS,
+    DB_PASSWORD,
+    TABLE_NAME_ITEMS,
+    TABLE_NAME_TEXTS,
+)
 from src.tasks.compute_insert_sentiment import run
 
 parser = argparse.ArgumentParser()
@@ -42,23 +48,70 @@ def main():
         user="postgres", password=DB_PASSWORD, db_name=DB_NAME_HACKERNEWS
     )
 
-    item_ids = get_column_values(
-        conn, TABLE_NAME_ITEMS, "id", fetch_size=100000, cursor_name="item_id_cursor"
-    )
-    titles = get_column_values(
-        conn, TABLE_NAME_ITEMS, "title", fetch_size=100000, cursor_name="titles_cursor"
-    )
-    texts = get_column_values(
-        conn, TABLE_NAME_ITEMS, "text", fetch_size=100000, cursor_name="texts_cursor"
-    )
+    def data_generator(conn: DBConnection):
+        cursor = conn.get_named_cursor("compute_sentiment_cursor")
+        cursor.itersize = args.batch_size
 
-    run(
-        item_ids=item_ids,
-        titles=titles,
-        texts=texts,
-        process_text=True,
-        batch_size=args.batch_size,
-    )
+        # Get existing id_item from texts to avoid checking them again
+        query = """
+        SELECT id, title, text 
+        FROM {table_items}
+        WHERE NOT EXISTS (
+        SELECT 
+        FROM {table_texts}
+        WHERE id = {table_texts}.id_item
+        )
+        ORDER BY id ASC;
+        """
+
+        # query = "SELECT id, title, text FROM {table} ORDER BY id ASC;"
+        query_sql = sql.SQL(query).format(
+            table_items=sql.Identifier(TABLE_NAME_ITEMS),
+            table_texts=sql.Identifier(TABLE_NAME_TEXTS),
+        )
+        cursor.execute(query_sql)
+
+        while True:
+            rows = cursor.fetchmany(args.batch_size)
+            if not rows:
+                break
+            for row in rows:
+                yield row
+
+    generator = data_generator(conn)
+
+    run(generator, True, args.batch_size)
+
+    # NCORE = 3
+    #
+    # q = mp.Queue(maxsize=NCORE)
+    # iolock = mp.Lock()
+    #
+    # pool = mp.Pool(
+    #     NCORE,
+    #     initializer=run,
+    #     initargs=(
+    #         q,
+    #         True,
+    #         iolock,
+    #         args.batch_size,
+    #     ),
+    # )
+    #
+    # for row in generator:
+    #     q.put(row)
+    #
+    # for _ in range(NCORE):
+    #     q.put(None)
+    #
+    # pool.close()
+    # pool.join()
+    #
+    # run(
+    #     data_generator=generator,
+    #     process_text=True,
+    #     batch_size=args.batch_size,
+    # )
 
 
 if __name__ == "__main__":
