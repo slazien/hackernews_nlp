@@ -1,7 +1,7 @@
 import logging
+import multiprocessing as mp
 from typing import Iterable
 
-import luigi
 from tqdm import tqdm
 
 from src.db.connection import DBConnection
@@ -9,11 +9,9 @@ from src.db.constants import (
     DB_NAME_HACKERNEWS,
     DB_PASSWORD,
     PRIMARY_KEY_NAME_TEXTS,
-    TABLE_NAME_ITEMS,
     TABLE_NAME_TEXTS,
 )
 from src.db.inserters import TextInserter
-from src.db.utils import get_column_values
 from src.entities.text import Text
 from src.models.sentiment_analysis import SentimentClassifier
 from src.preprocessing.pipeline import TextPreprocessor
@@ -21,18 +19,15 @@ from src.utils.text import is_string_empty
 
 
 def run(
-    item_ids: Iterable,
-    titles: Iterable,
-    texts: Iterable,
+    data_generator,
     process_text: bool,
-    batch_size: int = 10000,
+    batch_size: int = 100000,
 ):
     """
-    :param item_ids: iterable of item IDs
-    :param titles: iterable of titles
-    :param texts: iterable of texts
-    :param process_text: whether to process the text or not before computing sentiment and inserting into DB
     Compute and insert sentiment scores (polarity, subjectivity) into DB for all existing items
+    :param data_generator: an iterable where each element is a single row from the DB
+    :param process_text: whether to process the text or not before computing sentiment and inserting into DB
+    :param batch_size: size of the batch to use for the named cursor when querying DB for data
     :return:
     """
     logging.info("starting task %s", __name__)
@@ -42,12 +37,18 @@ def run(
     text_inserter = TextInserter(conn, TABLE_NAME_TEXTS, PRIMARY_KEY_NAME_TEXTS)
     sentiment_classifier = SentimentClassifier()
     text_preprocessor = TextPreprocessor()
+    is_generator_exhausted = False
 
     if process_text:
-        while True:
+        while not is_generator_exhausted:
             current_batch = []
             for _ in range(batch_size):
-                current_batch.append((next(item_ids), next(titles), next(texts)))
+                try:
+                    current_batch.append(next(data_generator))
+                except StopIteration:
+                    logging.info("generator %s exhausted, finishing", data_generator)
+                    is_generator_exhausted = True
+                    break
 
             if len(current_batch) == 0:
                 break
@@ -73,7 +74,7 @@ def run(
         while True:
             current_batch = []
             for _ in range(batch_size):
-                current_batch.append((next(item_ids), next(titles), next(texts)))
+                current_batch.append(next(data_generator))
 
             if len(current_batch) == 0:
                 break
