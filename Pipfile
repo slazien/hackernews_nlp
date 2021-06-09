@@ -34,6 +34,8 @@ transformers = "*"
 pylint = "*"
 ipywidgets = "*"
 umap-learn = "*"
+python-levenshtein = "*"
+wordcloud = "*"
 
 [dev-packages]
 black = "*"

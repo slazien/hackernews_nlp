@@ -158,7 +158,7 @@ class UserGetter:
     def get_all_user_ids(self, table_name: str) -> Optional[List[str]]:
         """
         Get all user IDs existing in the DB
-        :param table_name: name of the table from which to get user IDs
+        :param table_name: cursor_name of the table from which to get user IDs
         :return: a list of user IDs (if any)
         """
         logging.info("getting all user ids")

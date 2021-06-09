@@ -183,19 +183,14 @@ class TextInserter:
         text_str = text.get_text()
         text_str = text_str.replace("\x00", "") if text_str is not None else text_str
 
-        # query = """
-        # INSERT INTO {} (id_item, text) VALUES (%s, %s)
-        # ON CONFLICT (id_item) DO UPDATE SET text = %s;
-        # """
-
         query = """
         INSERT INTO {} (id_item, text) VALUES (%s, %s)
-        ON CONFLICT (id_item) DO NOTHING;
+        ON CONFLICT (id_item) DO UPDATE SET text = %s;
         """
 
         query_sql = sql.SQL(query).format(sql.Identifier(self.table_name))
 
-        self.cursor.execute(query_sql, (id_item, text_str))
+        self.cursor.execute(query_sql, (id_item, text_str, text_str))
 
     def insert_sentiment(self, sentiment: NamedTuple, item_id: int):
         """
@@ -206,18 +201,15 @@ class TextInserter:
         """
         logging.info("inserting sentiment: %s for item id: %s", sentiment, item_id)
 
-        # query = """
-        # INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s)
-        # ON CONFLICT (id_item) DO UPDATE SET polarity = %s, subjectivity = %s;
-        # """
-
         query = """
-                INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s) 
-                ON CONFLICT (id_item) DO NOTHING;
-                """
+        INSERT INTO {} (id_item, polarity, subjectivity) VALUES (%s, %s, %s)
+        ON CONFLICT (id_item) DO UPDATE SET polarity = %s, subjectivity = %s;
+        """
 
         query_sql = sql.SQL(query).format(sql.Identifier(TABLE_NAME_TEXTS))
 
         polarity = sentiment[0] if sentiment is not None else None
         subjectivity = sentiment[1] if sentiment is not None else None
-        self.cursor.execute(query_sql, (item_id, polarity, subjectivity))
+        self.cursor.execute(
+            query_sql, (item_id, polarity, subjectivity, polarity, subjectivity)
+        )

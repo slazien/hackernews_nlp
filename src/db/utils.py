@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Any, Iterable, Optional
 
 from psycopg2 import sql
@@ -10,7 +11,7 @@ def is_table_exists(conn: DBConnection, table_name: str) -> bool:
     """
     Check if a given table exists in the DB
     :param conn: DBConnection object
-    :param table_name: name of the table to check
+    :param table_name: cursor_name of the table to check
     :return: True if table exists, False otherwise
     """
     logging.info("checking if table %s exists", table_name)
@@ -50,8 +51,8 @@ def is_value_exists(
     """
     Check if a given value exists in a given column in a given table
     :param conn: DBConnection object
-    :param table_name: name of the table
-    :param column_name: name of the column
+    :param table_name: cursor_name of the table
+    :param column_name: cursor_name of the column
     :param value: value to check existence of
     :return: True if the value exists, False otherwise
     """
@@ -87,8 +88,8 @@ def all_values_exist(
     """
     Check if all provided values exist in a given table in a given column
     :param conn: DBConnection object
-    :param table_name: name of the table
-    :param column_name: name of the column
+    :param table_name: cursor_name of the table
+    :param column_name: cursor_name of the column
     :param values: tuple of all values to check existence of
     :return: True if all values exist, False otherwise
     """
@@ -121,6 +122,7 @@ def get_column_values(
     column_name: str,
     limit: Optional[int] = None,
     fetch_size: int = 10000,
+    cursor_name: str = str(datetime.now()),
 ) -> Optional[Iterable[Any]]:
     """
     Get all values in a given column in a given table
@@ -129,11 +131,12 @@ def get_column_values(
     :param column_name: name of the column
     :param limit: maximum number of values to return
     :param fetch_size: number of rows to fetch in one batch
+    :param cursor_name: optional name of the cursor
     :return: generator of values (if any) in the column
     """
     logging.info("getting all values for column: %s", column_name)
 
-    cursor = conn.get_named_cursor("cursor_get_column_values")
+    cursor = conn.get_named_cursor(str(cursor_name))
     cursor.itersize = fetch_size
 
     if limit:
@@ -160,8 +163,8 @@ def get_value_count_in_column(
     """
     Count the number of values in a column
     :param conn: DBConnection object
-    :param table_name: name of the table
-    :param column_name: name of the column
+    :param table_name: cursor_name of the table
+    :param column_name: cursor_name of the column
     :return: count of values
     """
     logging.info(

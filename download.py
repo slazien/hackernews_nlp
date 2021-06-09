@@ -15,7 +15,7 @@ from src.tasks.download_items import TaskDownloadItems
 from src.tasks.download_users import TaskDownloadUsers
 from src.utils.list import chunk_for_size
 
-# Use the current epoch time as log file name
+# Use the current epoch time as log file cursor_name
 LOG_FILENAME = "logs/download_{}.log".format(str(int(time())))
 parser = argparse.ArgumentParser()
 parser.add_argument("--startid", help="id of the first item to download", type=int)
