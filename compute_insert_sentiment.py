@@ -61,7 +61,7 @@ def main():
         FROM {table_texts}
         WHERE id = {table_texts}.id_item
         )
-        ORDER BY id ASC;
+        ORDER BY id;
         """
 
         # query = "SELECT id, title, text FROM {table} ORDER BY id ASC;"
